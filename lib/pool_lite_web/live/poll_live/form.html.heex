@@ -1,0 +1,258 @@
+<Layouts.app flash={@flash} current_scope={%{}}>
+  <div class="max-w-2xl mx-auto">
+    <.header>
+      {@page_title}
+      <:subtitle>
+        Create engaging polls with multiple options for real-time voting.
+      </:subtitle>
+      <:actions>
+        <.link
+          navigate={return_path(@return_to, @poll)}
+          class="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors duration-200"
+        >
+          <.icon name="hero-arrow-left" class="w-5 h-5 mr-2" /> Cancel
+        </.link>
+      </:actions>
+    </.header>
+
+    <div class="mt-8">
+      <.form
+        for={@form}
+        id="poll-form"
+        phx-change="validate"
+        phx-submit="save"
+        class="space-y-6"
+      >
+        <div class="bg-white rounded-lg border border-gray-200 p-6 space-y-4">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Poll Details</h3>
+
+          <.input
+            field={@form[:title]}
+            type="text"
+            label="Poll Title"
+            placeholder="What's your question?"
+            required
+          />
+
+          <.input
+            field={@form[:description]}
+            type="textarea"
+            label="Description"
+            placeholder="Provide more context for your poll (optional)"
+            rows="3"
+          />
+          
+<!-- Category Selection -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+            <select
+              name="poll[category]"
+              class="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 sm:text-sm"
+            >
+              <option value="" selected={@form[:category].value == ""}>
+                Select a category (optional)
+              </option>
+              <option
+                :for={category <- @available_categories}
+                value={category}
+                selected={@form[:category].value == category}
+              >
+                {category}
+              </option>
+            </select>
+          </div>
+          
+<!-- Tags Input -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Tags</label>
+            <div class="space-y-2">
+              <input
+                type="text"
+                placeholder="Add tags separated by commas (e.g., urgent, fun, quick)"
+                phx-keydown="tag_input_keydown"
+                phx-value-target="tags"
+                class="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 sm:text-sm"
+              />
+              
+<!-- Display Current Tags -->
+              <div :if={@current_tags != []} class="flex flex-wrap gap-2 mt-2">
+                <span
+                  :for={{tag, index} <- Enum.with_index(@current_tags)}
+                  class="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full"
+                >
+                  {tag}
+                  <button
+                    type="button"
+                    phx-click="remove_tag"
+                    phx-value-index={index}
+                    class="ml-1 text-blue-600 hover:text-blue-800"
+                  >
+                    <.icon name="hero-x-mark" class="w-3 h-3" />
+                  </button>
+                </span>
+              </div>
+              
+<!-- Suggested Tags -->
+              <div :if={@suggested_tags != []} class="mt-2">
+                <div class="text-xs text-gray-500 mb-1">Suggested tags:</div>
+                <div class="flex flex-wrap gap-1">
+                  <button
+                    :for={tag <- @suggested_tags}
+                    type="button"
+                    phx-click="add_suggested_tag"
+                    phx-value-tag={tag}
+                    class="inline-flex items-center px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs rounded-full transition-colors duration-150"
+                  >
+                    {tag}
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+<!-- Hidden input to store tags for form submission -->
+            <input type="hidden" name="poll[tags]" value={Enum.join(@current_tags, ",")} />
+          </div>
+        </div>
+        
+<!-- Poll Expiration -->
+        <div class="bg-white rounded-lg border border-gray-200 p-6">
+          <div class="mb-4">
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Poll Expiration</h3>
+            <p class="text-sm text-gray-600">
+              Set when this poll should close for voting (optional)
+            </p>
+          </div>
+
+          <div class="flex items-center space-x-4">
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input
+                type="checkbox"
+                phx-click="toggle_expiration"
+                checked={@has_expiration}
+                class="rounded border-gray-300 text-blue-600 focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+              />
+              <span class="text-sm font-medium text-gray-900">Set expiration date</span>
+            </label>
+          </div>
+
+          <div :if={@has_expiration} class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <.input
+                field={@form[:expires_at]}
+                type="datetime-local"
+                label="Expires at"
+                min={
+                  DateTime.utc_now()
+                  |> DateTime.add(300, :second)
+                  |> DateTime.to_naive()
+                  |> NaiveDateTime.to_string()
+                }
+                required={@has_expiration}
+              />
+            </div>
+            <div class="flex items-end">
+              <div class="text-sm text-gray-600">
+                <div class="mb-1 font-medium">Quick Options:</div>
+                <div class="space-y-1">
+                  <button
+                    type="button"
+                    phx-click="set_quick_expiration"
+                    phx-value-hours="1"
+                    class="block text-blue-600 hover:text-blue-800 text-xs"
+                  >
+                    1 hour from now
+                  </button>
+                  <button
+                    type="button"
+                    phx-click="set_quick_expiration"
+                    phx-value-hours="24"
+                    class="block text-blue-600 hover:text-blue-800 text-xs"
+                  >
+                    1 day from now
+                  </button>
+                  <button
+                    type="button"
+                    phx-click="set_quick_expiration"
+                    phx-value-hours="168"
+                    class="block text-blue-600 hover:text-blue-800 text-xs"
+                  >
+                    1 week from now
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-lg border border-gray-200 p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900">Poll Options</h3>
+            <button
+              type="button"
+              phx-click="add_option"
+              class="inline-flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-200"
+            >
+              <.icon name="hero-plus" class="w-4 h-4 mr-1" /> Add Option
+            </button>
+          </div>
+
+          <div class="space-y-3" id="poll-options">
+            <div
+              :for={{option, index} <- Enum.with_index(@options)}
+              class="flex items-center space-x-3"
+            >
+              <div class="flex-1">
+                <.input
+                  name={"options[#{index}]"}
+                  value={option}
+                  type="text"
+                  placeholder={"Option #{index + 1}"}
+                  required
+                  phx-debounce="300"
+                />
+              </div>
+              <button
+                :if={length(@options) > 2}
+                type="button"
+                phx-click="remove_option"
+                phx-value-index={index}
+                class="flex-shrink-0 p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                title="Remove option"
+              >
+                <.icon name="hero-trash" class="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+
+          <p :if={length(@options) < 2} class="text-sm text-red-600 mt-2">
+            <.icon name="hero-exclamation-triangle" class="w-4 h-4 inline mr-1" />
+            Please add at least 2 options for your poll.
+          </p>
+
+          <p :if={length(@options) >= 10} class="text-sm text-amber-600 mt-2">
+            <.icon name="hero-information-circle" class="w-4 h-4 inline mr-1" />
+            Maximum of 10 options allowed.
+          </p>
+        </div>
+
+        <div class="flex items-center justify-between pt-6">
+          <.link
+            navigate={return_path(@return_to, @poll)}
+            class="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors duration-200"
+          >
+            Cancel
+          </.link>
+
+          <.button
+            phx-disable-with="Saving..."
+            disabled={length(@options) < 2}
+            class="inline-flex items-center px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium rounded-lg transition-colors duration-200"
+          >
+            <.icon name="hero-check" class="w-5 h-5 mr-2" />
+            {@live_action |> to_string() |> String.capitalize()} Poll
+          </.button>
+        </div>
+      </.form>
+    </div>
+  </div>
+</Layouts.app>
