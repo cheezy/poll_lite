@@ -40,6 +40,56 @@ defmodule PoolLite.Polls do
   end
 
   @doc """
+  Lists all polls with vote counts efficiently loaded.
+  This avoids N+1 queries when displaying poll statistics.
+  """
+  def list_polls_with_stats(filter \\ :all) do
+    # First get all polls with options preloaded
+    polls = list_polls(filter)
+
+    # Get all poll IDs
+    poll_ids = Enum.map(polls, & &1.id)
+
+    # Get all vote counts in a single query
+    vote_counts =
+      from(v in Vote,
+        where: v.poll_id in ^poll_ids,
+        group_by: [v.poll_id, v.option_id],
+        select: {v.poll_id, v.option_id, count(v.id)}
+      )
+      |> Repo.all()
+      |> Enum.reduce(%{}, fn {poll_id, option_id, count}, acc ->
+        Map.update(acc, poll_id, %{option_id => count}, &Map.put(&1, option_id, count))
+      end)
+
+    # Attach vote counts to options
+    Enum.map(polls, fn poll ->
+      poll_votes = Map.get(vote_counts, poll.id, %{})
+      total_votes = Map.values(poll_votes) |> Enum.sum()
+
+      options_with_counts =
+        Enum.map(poll.options, fn option ->
+          votes_count = Map.get(poll_votes, option.id, 0)
+
+          percentage =
+            if total_votes > 0 do
+              Float.round(votes_count / total_votes * 100, 1)
+            else
+              0.0
+            end
+
+          option
+          |> Map.put(:votes_count, votes_count)
+          |> Map.put(:percentage, percentage)
+        end)
+
+      poll
+      |> Map.put(:options, options_with_counts)
+      |> Map.put(:total_votes, total_votes)
+    end)
+  end
+
+  @doc """
   Gets a single poll with options preloaded.
 
   Raises `Ecto.NoResultsError` if the Poll does not exist.

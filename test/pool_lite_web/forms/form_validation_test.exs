@@ -796,7 +796,7 @@ defmodule PoolLiteWeb.FormValidationTest do
 
       # Tag should be removed from current tags display
       # Note: The tag might still appear in suggested tags
-      refute html =~ "#urgent" or refute html =~ "tag-urgent"
+      refute html =~ "#urgent" or refute(html =~ "tag-urgent")
     end
 
     test "limits tags to maximum of 10", %{conn: conn} do

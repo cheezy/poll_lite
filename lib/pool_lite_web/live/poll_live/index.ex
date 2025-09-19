@@ -264,7 +264,7 @@ defmodule PoolLiteWeb.PollLive.Index do
   end
 
   defp list_polls() do
-    Polls.list_polls()
+    Polls.list_polls_with_stats()
   end
 
   # Helper function to check if a poll has recent activity
@@ -349,7 +349,7 @@ defmodule PoolLiteWeb.PollLive.Index do
   # Get all polls (cached or fresh)
   defp get_all_polls do
     try do
-      Polls.list_polls()
+      Polls.list_polls_with_stats()
     rescue
       _ -> []
     end
@@ -373,12 +373,8 @@ defmodule PoolLiteWeb.PollLive.Index do
 
   # Get vote count for a poll
   defp get_poll_vote_count(poll) do
-    try do
-      poll_stats = Polls.get_poll_stats(poll.id)
-      poll_stats.total_votes
-    rescue
-      _ -> 0
-    end
+    # Vote count is now preloaded in the poll struct
+    Map.get(poll, :total_votes, 0)
   end
 
   # Format sort option for display

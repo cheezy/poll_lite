@@ -225,6 +225,7 @@ defmodule PoolLiteWeb.PollLive.Form do
       {:error, %Ecto.Changeset{} = changeset} ->
         # Preserve options on validation error
         options = Map.get(poll_params, "options", [])
+
         options_for_display =
           if is_list(options) && length(options) > 0 do
             options
@@ -250,6 +251,7 @@ defmodule PoolLiteWeb.PollLive.Form do
       {:error, %Ecto.Changeset{} = changeset} ->
         # Preserve options on validation error
         options = Map.get(poll_params, "options", [])
+
         options_for_display =
           if is_list(options) && length(options) > 0 do
             options
