@@ -4,6 +4,8 @@ defmodule PoolLiteWeb.PollLive.Index do
   alias PoolLite.Polls
   alias PoolLite.Polls.PubSub
 
+  require Logger
+
   @impl true
   def mount(_params, _session, socket) do
     # Enhanced PubSub subscriptions for comprehensive poll updates
@@ -256,9 +258,7 @@ defmodule PoolLiteWeb.PollLive.Index do
   @impl true
   def handle_info(msg, socket) do
     # Log unhandled messages in development
-    if Application.get_env(:pool_lite, :environment) == :dev do
-      IO.inspect(msg, label: "Unhandled PubSub message in Index LiveView")
-    end
+    Logger.debug("Unhandled PubSub message in Index LiveView: #{inspect(msg)}")
 
     {:noreply, socket}
   end

@@ -6,6 +6,8 @@ defmodule PoolLiteWeb.PollLive.Show do
   alias PoolLiteWeb.UserSession
   alias PoolLiteWeb.Components.ShareComponents
 
+  require Logger
+
   @impl true
   def mount(%{"id" => id}, session, socket) do
     poll = Polls.get_poll!(id)
@@ -186,10 +188,7 @@ defmodule PoolLiteWeb.PollLive.Show do
   # Catch-all for any unhandled PubSub messages
   @impl true
   def handle_info(msg, socket) do
-    # Log unhandled messages in development
-    if Application.get_env(:pool_lite, :environment) == :dev do
-      IO.inspect(msg, label: "Unhandled PubSub message in Show LiveView")
-    end
+    Logger.debug("Unhandled PubSub message in Show LiveView: #{inspect(msg)}")
 
     {:noreply, socket}
   end
