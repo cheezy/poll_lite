@@ -4,6 +4,8 @@ defmodule PoolLite.Polls.Vote do
 
   alias PoolLite.Polls.{Poll, Option}
 
+  @moduledoc false
+
   schema "votes" do
     field :user_identifier, :string
     field :voted_at, :naive_datetime

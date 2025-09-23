@@ -4,6 +4,8 @@ defmodule PoolLite.Polls.Poll do
 
   alias PoolLite.Polls.{Option, Vote}
 
+  @moduledoc false
+
   schema "polls" do
     field :title, :string
     field :description, :string

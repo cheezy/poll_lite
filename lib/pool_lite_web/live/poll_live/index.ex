@@ -71,11 +71,18 @@ defmodule PoolLiteWeb.PollLive.Index do
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
+    # Handle both string and integer id values
+    poll_id =
+      case id do
+        id when is_binary(id) -> String.to_integer(id)
+        id when is_integer(id) -> id
+      end
+
     # Add loading state for the specific poll being deleted
-    poll = Polls.get_poll!(id)
+    poll = Polls.get_poll!(poll_id)
 
     # Show loading state
-    socket = assign(socket, :deleting_poll_id, String.to_integer(id))
+    socket = assign(socket, :deleting_poll_id, poll_id)
 
     case Polls.delete_poll(poll) do
       {:ok, _} ->

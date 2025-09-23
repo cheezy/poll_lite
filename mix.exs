@@ -11,7 +11,8 @@ defmodule PoolLite.MixProject do
       aliases: aliases(),
       deps: deps(),
       compilers: [:phoenix_live_view] ++ Mix.compilers(),
-      listeners: [Phoenix.CodeReloader]
+      listeners: [Phoenix.CodeReloader],
+      test_coverage: test_coverage()
     ]
   end
 
@@ -68,7 +69,8 @@ defmodule PoolLite.MixProject do
       {:bandit, "~> 1.5"},
       {:tidewave, "~> 0.5", only: :dev},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:mix_audit, "~> 2.1", only: [:dev, :test], runtime: false}
+      {:mix_audit, "~> 2.1", only: [:dev, :test], runtime: false},
+      {:usage_rules, "~> 0.1"}
     ]
   end
 
@@ -83,7 +85,7 @@ defmodule PoolLite.MixProject do
       setup: ["deps.get", "ecto.setup", "assets.setup", "assets.build"],
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
-      test: ["ecto.create --quiet", "ecto.migrate --quiet", "credo", "test --cover"],
+      test: ["ecto.create --quiet", "ecto.migrate --quiet", "test --cover"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
       "assets.build": ["compile", "tailwind pool_lite", "esbuild pool_lite"],
       "assets.deploy": [
@@ -92,6 +94,24 @@ defmodule PoolLite.MixProject do
         "phx.digest"
       ],
       precommit: ["compile --warning-as-errors", "deps.unlock --unused", "format", "test"]
+    ]
+  end
+
+  defp test_coverage do
+    [
+      ignore_modules: [
+        PoolLiteWeb.Layouts,
+        PoolLiteWeb.PageHTML,
+        PoolLiteWeb.CoreComponents,
+        PoolLite.DataCase,
+        PoolLite.Repo,
+        PoolLiteWeb.ErrorHTML,
+        PoolLiteWeb.Router,
+        PoolLite.Application,
+        PoolLite.TestHelpers,
+        PoolLiteWeb.ConnCase,
+        PoolLiteWeb.Telemetry
+      ]
     ]
   end
 end
