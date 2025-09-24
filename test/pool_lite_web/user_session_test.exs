@@ -1,9 +1,9 @@
 defmodule PoolLiteWeb.UserSessionTest do
   use PoolLiteWeb.ConnCase
 
-  alias PoolLiteWeb.UserSession
   alias PoolLite.Polls
   alias PoolLite.PollsFixtures
+  alias PoolLiteWeb.UserSession
 
   describe "generate_user_id/0" do
     test "generates a unique user identifier" do

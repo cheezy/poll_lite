@@ -8,6 +8,7 @@ Mix.install([:req, :jason])
 defmodule RealTimeVotingTest do
   @base_url "http://localhost:4000"
 
+  @spec run_test() :: :ok
   def run_test do
     IO.puts("🚀 Starting real-time voting simulation...")
 
@@ -41,7 +42,7 @@ defmodule RealTimeVotingTest do
 
     IO.puts("👤 User #{user_id} voting for option #{option_id}...")
 
-    # This would normally make an HTTP request, but since we can't easily 
+    # This would normally make an HTTP request, but since we can't easily
     # simulate LiveView voting from outside, we'll use the Polls context directly
     user_identifier = "test_user_#{user_id}_#{:rand.uniform(1000)}"
 

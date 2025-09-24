@@ -4,10 +4,10 @@ defmodule PoolLiteWeb.RealTimeVotingTest do
   import Phoenix.LiveViewTest
   import PoolLite.PollsFixtures
 
-  @moduletag capture_log: true
-
-  alias PoolLite.Polls
   alias Phoenix.PubSub
+  alias PoolLite.Polls
+
+  @moduletag capture_log: true
 
   describe "Real-time voting scenarios" do
     setup do

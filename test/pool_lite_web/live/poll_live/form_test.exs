@@ -311,7 +311,7 @@ defmodule PoolLiteWeb.PollLive.FormTest do
       # Enable expiration
       view |> render_click("toggle_expiration")
 
-      expires_at = DateTime.utc_now() |> DateTime.add(86400, :second) |> DateTime.to_iso8601()
+      expires_at = DateTime.utc_now() |> DateTime.add(86_400, :second) |> DateTime.to_iso8601()
 
       view
       |> form("#poll-form", %{

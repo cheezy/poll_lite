@@ -37,6 +37,7 @@ defmodule PoolLite.DataCase do
   @doc """
   Sets up the sandbox based on the test tags.
   """
+  @spec setup_sandbox(map()) :: :ok
   def setup_sandbox(tags) do
     pid = Sandbox.start_owner!(PoolLite.Repo, shared: not tags[:async])
     on_exit(fn ->
@@ -57,6 +58,7 @@ defmodule PoolLite.DataCase do
       assert %{password: ["password is too short"]} = errors_on(changeset)
 
   """
+  @spec errors_on(Ecto.Changeset.t()) :: map()
   def errors_on(changeset) do
     Ecto.Changeset.traverse_errors(changeset, fn {message, opts} ->
       Regex.replace(~r"%{(\w+)}", message, fn _, key ->

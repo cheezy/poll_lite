@@ -17,8 +17,10 @@ defmodule PoolLiteWeb do
   those modules here.
   """
 
+  @spec static_paths() :: list()
   def static_paths, do: ~w(assets fonts images favicon.ico robots.txt)
 
+  @spec router() :: Phoenix.Router.t()
   def router do
     quote do
       use Phoenix.Router, helpers: false
@@ -30,12 +32,14 @@ defmodule PoolLiteWeb do
     end
   end
 
+  @spec channel() :: Phoenix.Channel.t()
   def channel do
     quote do
       use Phoenix.Channel
     end
   end
 
+  @spec controller() :: Phoenix.Controller.t()
   def controller do
     quote do
       use Phoenix.Controller, formats: [:html, :json]
@@ -48,6 +52,7 @@ defmodule PoolLiteWeb do
     end
   end
 
+  @spec live_view() :: Phoenix.LiveView.t()
   def live_view do
     quote do
       use Phoenix.LiveView
@@ -56,6 +61,7 @@ defmodule PoolLiteWeb do
     end
   end
 
+  @spec live_component() :: Phoenix.LiveComponent.t()
   def live_component do
     quote do
       use Phoenix.LiveComponent
@@ -64,6 +70,7 @@ defmodule PoolLiteWeb do
     end
   end
 
+  @spec html() :: Phoenix.Component.t()
   def html do
     quote do
       use Phoenix.Component
@@ -77,6 +84,7 @@ defmodule PoolLiteWeb do
     end
   end
 
+  @spec html_helpers() :: Phoenix.Component.t()
   defp html_helpers do
     quote do
       # Translation
@@ -96,6 +104,7 @@ defmodule PoolLiteWeb do
     end
   end
 
+  @spec verified_routes() :: Phoenix.VerifiedRoutes.t()
   def verified_routes do
     quote do
       use Phoenix.VerifiedRoutes,
@@ -105,6 +114,7 @@ defmodule PoolLiteWeb do
     end
   end
 
+  @spec __using__(atom()) :: any()
   @doc """
   When used, dispatch to the appropriate controller/live_view/etc.
   """

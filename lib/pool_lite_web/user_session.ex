@@ -19,6 +19,7 @@ defmodule PoolLiteWeb.UserSession do
       iex> get_or_create_user_id(session)
       "user_abc123def456"
   """
+  @spec get_or_create_user_id(map()) :: String.t()
   def get_or_create_user_id(session) do
     case Map.get(session, "user_identifier") do
       nil -> generate_user_id()
@@ -41,6 +42,7 @@ defmodule PoolLiteWeb.UserSession do
       iex> generate_user_id()
       "user_20240117_abc123def"
   """
+  @spec generate_user_id() :: String.t()
   def generate_user_id do
     timestamp = DateTime.utc_now() |> DateTime.to_unix()
     random = :crypto.strong_rand_bytes(8) |> Base.url_encode64(padding: false)
@@ -56,6 +58,7 @@ defmodule PoolLiteWeb.UserSession do
       iex> store_user_id(conn, "user_abc123")
       %Plug.Conn{...}
   """
+  @spec store_user_id(Plug.Conn.t(), String.t()) :: Plug.Conn.t()
   def store_user_id(conn, user_id) do
     Plug.Conn.put_session(conn, "user_identifier", user_id)
   end
@@ -68,6 +71,7 @@ defmodule PoolLiteWeb.UserSession do
       iex> get_user_id(conn)
       "user_abc123def456"
   """
+  @spec get_user_id(Plug.Conn.t()) :: String.t()
   def get_user_id(conn) do
     Plug.Conn.get_session(conn, "user_identifier")
   end
@@ -82,6 +86,7 @@ defmodule PoolLiteWeb.UserSession do
       iex> ensure_user_id(conn)
       %Plug.Conn{...}
   """
+  @spec ensure_user_id(Plug.Conn.t()) :: Plug.Conn.t()
   def ensure_user_id(conn) do
     case get_user_id(conn) do
       nil ->
@@ -104,10 +109,12 @@ defmodule PoolLiteWeb.UserSession do
       iex> valid_user_id?("invalid")
       false
   """
+  @spec valid_user_id?(String.t()) :: boolean()
   def valid_user_id?(identifier) when is_binary(identifier) do
     String.starts_with?(identifier, "user_") and String.length(identifier) > 10
   end
 
+  @spec valid_user_id?(any()) :: boolean()
   def valid_user_id?(_), do: false
 
   @doc """
@@ -124,8 +131,8 @@ defmodule PoolLiteWeb.UserSession do
   @spec get_user_stats(user_identifier :: String.t()) ::
           %{votes_cast: integer(), polls_voted: integer(), last_vote_at: DateTime.t()}
   def get_user_stats(user_identifier) do
-    alias PoolLite.Repo
     alias PoolLite.Polls.Vote
+    alias PoolLite.Repo
     import Ecto.Query
 
     stats_query =

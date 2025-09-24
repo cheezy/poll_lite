@@ -23,6 +23,7 @@ defmodule PoolLiteWeb.Components.ShareComponents do
   attr :url, :string, required: true
   attr :class, :string, default: ""
 
+  @spec poll_share_widget(assigns :: keyword()) :: Phoenix.Component.component()
   def poll_share_widget(assigns) do
     ~H"""
     <div class={["bg-white rounded-lg border border-gray-200 p-4", @class]}>
@@ -37,7 +38,7 @@ defmodule PoolLiteWeb.Components.ShareComponents do
           <.icon name="hero-x-mark" class="w-5 h-5" />
         </button>
       </div>
-      
+
     <!-- Quick Copy Section -->
       <div class="mb-6">
         <label class="block text-sm font-medium text-gray-700 mb-2">Poll Link</label>
@@ -60,7 +61,7 @@ defmodule PoolLiteWeb.Components.ShareComponents do
           </button>
         </div>
       </div>
-      
+
     <!-- Social Media Sharing -->
       <div class="mb-6">
         <h4 class="text-sm font-medium text-gray-700 mb-3">Share on Social Media</h4>
@@ -91,7 +92,7 @@ defmodule PoolLiteWeb.Components.ShareComponents do
           />
         </div>
       </div>
-      
+
     <!-- Email Sharing -->
       <div class="mb-6">
         <h4 class="text-sm font-medium text-gray-700 mb-3">Share via Email</h4>
@@ -106,7 +107,7 @@ defmodule PoolLiteWeb.Components.ShareComponents do
           <span class="text-gray-700">Open Email Client</span>
         </button>
       </div>
-      
+
     <!-- QR Code Section -->
       <div class="text-center">
         <h4 class="text-sm font-medium text-gray-700 mb-3">QR Code</h4>
@@ -137,6 +138,7 @@ defmodule PoolLiteWeb.Components.ShareComponents do
   attr :title, :string, required: true
   attr :description, :string, required: true
 
+  @spec social_share_button(assigns :: keyword()) :: Phoenix.Component.component()
   def social_share_button(assigns) do
     assigns =
       assign(
@@ -172,6 +174,7 @@ defmodule PoolLiteWeb.Components.ShareComponents do
   attr :url, :string, required: true
   attr :class, :string, default: ""
 
+  @spec share_button(assigns :: keyword()) :: Phoenix.Component.component()
   def share_button(assigns) do
     ~H"""
     <button

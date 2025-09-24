@@ -18,7 +18,7 @@ defmodule PoolLite.Polls.Poll do
     timestamps(type: :utc_datetime)
   end
 
-  @doc false
+  @spec changeset(Poll.t(), map) :: Ecto.Changeset.t()
   def changeset(poll, attrs) do
     poll
     |> cast(attrs, [:title, :description, :expires_at, :category, :tags])
@@ -127,17 +127,17 @@ defmodule PoolLite.Polls.Poll do
     |> Enum.uniq()
   end
 
-  # Helper function to check if a poll has expired
+  @spec expired?(Poll.t()) :: boolean
   def expired?(%__MODULE__{expires_at: nil}), do: false
 
   def expired?(%__MODULE__{expires_at: expires_at}) do
     DateTime.compare(DateTime.utc_now(), expires_at) != :lt
   end
 
-  # Helper function to check if a poll is active (not expired)
+  @spec active?(Poll.t()) :: boolean
   def active?(%__MODULE__{} = poll), do: not expired?(poll)
 
-  # Helper function to get time remaining until expiration
+  @spec time_remaining(Poll.t()) :: integer | nil
   def time_remaining(%__MODULE__{expires_at: nil}), do: nil
 
   def time_remaining(%__MODULE__{expires_at: expires_at}) do
@@ -147,7 +147,7 @@ defmodule PoolLite.Polls.Poll do
     end
   end
 
-  # Helper function to format expiration status
+  @spec expiration_status(Poll.t()) :: atom
   def expiration_status(%__MODULE__{} = poll) do
     cond do
       poll.expires_at == nil -> :no_expiration
@@ -158,7 +158,7 @@ defmodule PoolLite.Polls.Poll do
     end
   end
 
-  # Available poll categories
+  @spec available_categories() :: list
   def available_categories do
     [
       "General",
@@ -205,7 +205,7 @@ defmodule PoolLite.Polls.Poll do
     "Fashion" => "👗"
   }
 
-  # Get category display name with icon
+  @spec category_display(Poll.t()) :: {String.t(), String.t()}
   def category_display(%__MODULE__{category: nil}), do: {"📝", "General"}
 
   def category_display(%__MODULE__{category: category}) do
@@ -214,24 +214,24 @@ defmodule PoolLite.Polls.Poll do
     {icon, display_name}
   end
 
-  # Get formatted tags for display
+  @spec formatted_tags(Poll.t()) :: list
   def formatted_tags(%__MODULE__{tags: nil}), do: []
   def formatted_tags(%__MODULE__{tags: tags}) when is_list(tags), do: tags
   def formatted_tags(_), do: []
 
-  # Check if poll has a specific tag
+  @spec has_tag?(Poll.t(), String.t()) :: boolean
   def has_tag?(%__MODULE__{tags: tags}, tag) when is_list(tags) do
     String.downcase(tag) in Enum.map(tags, &String.downcase/1)
   end
 
   def has_tag?(_, _), do: false
 
-  # Check if poll belongs to a specific category
+  @spec in_category?(Poll.t(), String.t()) :: boolean
   def in_category?(%__MODULE__{category: category}, target_category) do
     String.downcase(category || "general") == String.downcase(target_category)
   end
 
-  # Get popular tags from all polls (would typically be implemented in context)
+  @spec suggested_tags() :: list
   def suggested_tags do
     [
       "urgent",

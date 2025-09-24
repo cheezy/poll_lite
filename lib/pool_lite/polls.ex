@@ -17,6 +17,7 @@ defmodule PoolLite.Polls do
       [%Poll{}, ...]
 
   """
+  @spec list_polls(atom) :: list
   def list_polls(filter \\ :all) do
     base_query =
       from p in Poll,
@@ -43,6 +44,7 @@ defmodule PoolLite.Polls do
   Lists all polls with vote counts efficiently loaded.
   This avoids N+1 queries when displaying poll statistics.
   """
+  @spec list_polls_with_stats(atom) :: list
   def list_polls_with_stats(filter \\ :all) do
     # First get all polls with options preloaded
     polls = list_polls(filter)
@@ -103,6 +105,7 @@ defmodule PoolLite.Polls do
       ** (Ecto.NoResultsError)
 
   """
+  @spec get_poll!(integer) :: Poll.t()
   def get_poll!(id) do
     Repo.get!(Poll, id)
     |> Repo.preload([:options, :votes])
@@ -111,6 +114,7 @@ defmodule PoolLite.Polls do
   @doc """
   Gets a poll with vote counts calculated for each option.
   """
+  @spec get_poll_with_vote_counts!(integer) :: Poll.t()
   def get_poll_with_vote_counts!(id) do
     poll = get_poll!(id)
 
@@ -135,6 +139,7 @@ defmodule PoolLite.Polls do
       {:error, %Ecto.Changeset{}}
 
   """
+  @spec create_poll(map) :: {:ok, Poll.t()} | {:error, Ecto.Changeset.t()}
   def create_poll(attrs \\ %{}) do
     options = Map.get(attrs, "options", Map.get(attrs, :options, []))
     poll_attrs = Map.drop(attrs, ["options", :options])
@@ -193,6 +198,7 @@ defmodule PoolLite.Polls do
       {:error, %Ecto.Changeset{}}
 
   """
+  @spec update_poll(Poll.t(), map) :: {:ok, Poll.t()} | {:error, Ecto.Changeset.t()}
   def update_poll(%Poll{} = poll, attrs) do
     options = Map.get(attrs, "options", Map.get(attrs, :options, []))
     poll_attrs = Map.drop(attrs, ["options", :options])
@@ -271,6 +277,7 @@ defmodule PoolLite.Polls do
       {:error, %Ecto.Changeset{}}
 
   """
+  @spec delete_poll(Poll.t()) :: {:ok, Poll.t()} | {:error, Ecto.Changeset.t()}
   def delete_poll(%Poll{} = poll) do
     case Repo.delete(poll) do
       {:ok, deleted_poll} ->
@@ -291,6 +298,7 @@ defmodule PoolLite.Polls do
       %Ecto.Changeset{data: %Poll{}}
 
   """
+  @spec change_poll(Poll.t(), map) :: Ecto.Changeset.t()
   def change_poll(%Poll{} = poll, attrs \\ %{}) do
     Poll.changeset(poll, attrs)
   end
@@ -387,6 +395,7 @@ defmodule PoolLite.Polls do
       false
 
   """
+  @spec user_voted?(integer, String.t()) :: boolean
   def user_voted?(poll_id, user_identifier) do
     Repo.exists?(
       from v in Vote, where: v.poll_id == ^poll_id and v.user_identifier == ^user_identifier
@@ -396,6 +405,7 @@ defmodule PoolLite.Polls do
   @doc """
   Gets the vote for a specific user in a poll.
   """
+  @spec get_user_vote(integer, String.t()) :: Vote.t() | nil
   def get_user_vote(poll_id, user_identifier) do
     Repo.one(
       from v in Vote, where: v.poll_id == ^poll_id and v.user_identifier == ^user_identifier
@@ -405,6 +415,7 @@ defmodule PoolLite.Polls do
   @doc """
   Gets poll statistics including total votes and percentages.
   """
+  @spec get_poll_stats(integer) :: map
   def get_poll_stats(poll_id) do
     poll = get_poll_with_vote_counts!(poll_id)
     total_votes = Enum.sum(Enum.map(poll.options, & &1.votes_count))
@@ -489,6 +500,7 @@ defmodule PoolLite.Polls do
   @doc """
   Track a viewer joining a poll for live viewer count.
   """
+  @spec track_viewer(integer, String.t()) :: :ok
   def track_viewer(poll_id, _viewer_id) do
     # Use a simple ETS table or GenServer to track viewers
     # For simplicity, we'll just broadcast the event
@@ -498,6 +510,7 @@ defmodule PoolLite.Polls do
   @doc """
   Track a viewer leaving a poll.
   """
+  @spec untrack_viewer(integer, String.t()) :: :ok
   def untrack_viewer(poll_id, _viewer_id) do
     PubSub.broadcast_viewer_count(poll_id, max(0, get_viewer_count(poll_id) - 1))
   end
@@ -521,6 +534,7 @@ defmodule PoolLite.Polls do
       iex> suspicious_voting_pattern?(poll_id, suspicious_identifier)
       true
   """
+  @spec suspicious_voting_pattern?(integer, String.t()) :: boolean
   def suspicious_voting_pattern?(poll_id, user_identifier) do
     alias PoolLiteWeb.UserSession
 
@@ -550,6 +564,7 @@ defmodule PoolLite.Polls do
       iex> search_polls(%{category: "Technology", tag: "urgent"})
       [%Poll{}, ...]
   """
+  @spec search_polls(map) :: [Poll.t()]
   def search_polls(filters \\ %{}) do
     base_query =
       from p in Poll,
@@ -601,6 +616,7 @@ defmodule PoolLite.Polls do
   @doc """
   Get all unique categories from existing polls.
   """
+  @spec get_used_categories :: [String.t()]
   def get_used_categories do
     query =
       from p in Poll,
@@ -615,6 +631,7 @@ defmodule PoolLite.Polls do
   @doc """
   Get all unique tags from existing polls.
   """
+  @spec get_used_tags :: [String.t()]
   def get_used_tags do
     query =
       from p in Poll,
@@ -630,6 +647,7 @@ defmodule PoolLite.Polls do
   @doc """
   Get popular tags (most frequently used).
   """
+  @spec get_popular_tags(integer) :: [String.t()]
   def get_popular_tags(limit \\ 20) do
     query =
       from p in Poll,
@@ -650,6 +668,7 @@ defmodule PoolLite.Polls do
   @doc """
   Get statistics about categories and tags usage.
   """
+  @spec get_categorization_stats :: map
   def get_categorization_stats do
     total_polls = Repo.aggregate(Poll, :count)
 

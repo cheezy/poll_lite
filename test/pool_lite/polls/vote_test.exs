@@ -254,7 +254,7 @@ defmodule PoolLite.Polls.VoteTest do
 
   describe "constraints" do
     test "changeset includes foreign key constraint for poll_id" do
-      attrs = %{user_identifier: "user123", poll_id: 999999, option_id: 1}
+      attrs = %{user_identifier: "user123", poll_id: 999_999, option_id: 1}
       changeset = Vote.changeset(%Vote{}, attrs)
 
       # The changeset should be valid before database constraints
@@ -267,7 +267,7 @@ defmodule PoolLite.Polls.VoteTest do
     end
 
     test "changeset includes foreign key constraint for option_id" do
-      attrs = %{user_identifier: "user123", poll_id: 1, option_id: 999999}
+      attrs = %{user_identifier: "user123", poll_id: 1, option_id: 999_999}
       changeset = Vote.changeset(%Vote{}, attrs)
 
       # The changeset should be valid before database constraints

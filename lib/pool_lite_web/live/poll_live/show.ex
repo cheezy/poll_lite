@@ -3,8 +3,8 @@ defmodule PoolLiteWeb.PollLive.Show do
 
   alias PoolLite.Polls
   alias PoolLite.Polls.PubSub
-  alias PoolLiteWeb.UserSession
   alias PoolLiteWeb.Components.ShareComponents
+  alias PoolLiteWeb.UserSession
 
   require Logger
 

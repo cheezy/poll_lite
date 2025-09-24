@@ -91,7 +91,7 @@ defmodule PoolLiteWeb.PollLive.IndexTest do
       poll1 = poll_fixture(%{
         title: "Active Poll",
         description: "This is active",
-        expires_at: DateTime.utc_now() |> DateTime.add(86400, :second)
+        expires_at: DateTime.utc_now() |> DateTime.add(86_400, :second)
       })
 
       poll2 = poll_fixture(%{

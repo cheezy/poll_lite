@@ -8,6 +8,7 @@ defmodule PoolLite.PollsFixtures do
   @doc """
   Generate a poll with options.
   """
+  @spec poll_fixture(map()) :: PoolLite.Polls.Poll.t()
   def poll_fixture(attrs \\ %{}) do
     default_attrs = %{
       title: "What's your favorite color?",
@@ -25,6 +26,7 @@ defmodule PoolLite.PollsFixtures do
   @doc """
   Generate a poll with custom options.
   """
+  @spec poll_with_options_fixture([String.t()], map()) :: PoolLite.Polls.Poll.t()
   def poll_with_options_fixture(options, attrs \\ %{}) do
     default_attrs = %{
       title: "Test Poll",
@@ -42,6 +44,7 @@ defmodule PoolLite.PollsFixtures do
   @doc """
   Generate a vote for a poll option.
   """
+  @spec vote_fixture(pos_integer(), pos_integer(), String.t()) :: PoolLite.Polls.Vote.t()
   def vote_fixture(poll_id, option_id, user_identifier \\ "test_user") do
     {:ok, vote} = Polls.vote_for_option(poll_id, option_id, user_identifier)
     vote

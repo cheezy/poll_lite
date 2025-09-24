@@ -15,6 +15,7 @@ defmodule PoolLiteWeb.Plugs.EnsureUserSession do
   @doc """
   Initialize the plug with options.
   """
+  @spec init(map()) :: map()
   def init(opts), do: opts
 
   @doc """
@@ -23,6 +24,7 @@ defmodule PoolLiteWeb.Plugs.EnsureUserSession do
   If no identifier exists in the session, or if the existing one is invalid,
   a new identifier is generated and stored.
   """
+  @spec call(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def call(conn, _opts) do
     case get_session(conn, "user_identifier") do
       nil ->

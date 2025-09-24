@@ -89,11 +89,11 @@ defmodule PoolLite.Polls.OptionTest do
     end
 
     test "valid changeset with large votes_count" do
-      attrs = %{text: "Option 1", votes_count: 999999}
+      attrs = %{text: "Option 1", votes_count: 999_999}
       changeset = Option.changeset(%Option{}, attrs)
 
       assert changeset.valid?
-      assert get_change(changeset, :votes_count) == 999999
+      assert get_change(changeset, :votes_count) == 999_999
     end
 
     test "changeset ignores unknown fields" do

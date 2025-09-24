@@ -15,7 +15,7 @@ defmodule PoolLite.Polls.Vote do
     timestamps(type: :utc_datetime)
   end
 
-  @doc false
+  @spec changeset(Vote.t(), map) :: Ecto.Changeset.t()
   def changeset(vote, attrs) do
     vote
     |> cast(attrs, [:user_identifier, :voted_at, :poll_id, :option_id])
