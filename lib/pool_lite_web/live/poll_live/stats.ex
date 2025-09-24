@@ -23,61 +23,57 @@ defmodule PoolLiteWeb.PollLive.Stats do
   # Simple statistics functions
 
   defp load_overview_stats do
-    try do
-      polls = Polls.list_polls()
-      total_polls = length(polls)
+    polls = Polls.list_polls()
+    total_polls = length(polls)
 
-      # Calculate total votes by summing up option votes
-      total_votes =
-        Enum.reduce(polls, 0, fn poll, acc ->
-          try do
-            poll_stats = Polls.get_poll_stats(poll.id)
-            acc + poll_stats.total_votes
-          rescue
-            _ -> acc
-          end
-        end)
+    # Calculate total votes by summing up option votes
+    total_votes =
+      Enum.reduce(polls, 0, fn poll, acc ->
+        try do
+          poll_stats = Polls.get_poll_stats(poll.id)
+          acc + poll_stats.total_votes
+        rescue
+          _ -> acc
+        end
+      end)
 
-      # Estimate
-      unique_voters = max(1, div(total_votes * 3, 4))
+    # Estimate
+    unique_voters = max(1, div(total_votes * 3, 4))
 
+    %{
+      total_polls: total_polls,
+      total_votes: total_votes,
+      unique_voters: unique_voters,
+      avg_votes_per_poll: if(total_polls > 0, do: total_votes / total_polls, else: 0.0)
+    }
+  rescue
+    _ ->
       %{
-        total_polls: total_polls,
-        total_votes: total_votes,
-        unique_voters: unique_voters,
-        avg_votes_per_poll: if(total_polls > 0, do: total_votes / total_polls, else: 0.0)
+        total_polls: 0,
+        total_votes: 0,
+        unique_voters: 0,
+        avg_votes_per_poll: 0.0
       }
-    rescue
-      _ ->
-        %{
-          total_polls: 0,
-          total_votes: 0,
-          unique_voters: 0,
-          avg_votes_per_poll: 0.0
-        }
-    end
   end
 
   defp load_recent_polls do
-    try do
-      polls = Polls.list_polls()
+    polls = Polls.list_polls()
 
-      Enum.map(polls, fn poll ->
-        vote_count =
-          try do
-            poll_stats = Polls.get_poll_stats(poll.id)
-            poll_stats.total_votes
-          rescue
-            _ -> 0
-          end
+    Enum.map(polls, fn poll ->
+      vote_count =
+        try do
+          poll_stats = Polls.get_poll_stats(poll.id)
+          poll_stats.total_votes
+        rescue
+          _ -> 0
+        end
 
-        Map.put(poll, :vote_count, vote_count)
-      end)
-      |> Enum.sort_by(& &1.vote_count, :desc)
-      |> Enum.take(5)
-    rescue
-      _ -> []
-    end
+      Map.put(poll, :vote_count, vote_count)
+    end)
+    |> Enum.sort_by(& &1.vote_count, :desc)
+    |> Enum.take(5)
+  rescue
+    _ -> []
   end
 
   defp format_date(datetime) do

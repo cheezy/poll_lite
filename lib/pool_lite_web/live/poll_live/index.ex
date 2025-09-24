@@ -165,29 +165,27 @@ defmodule PoolLiteWeb.PollLive.Index do
 
   @impl true
   def handle_info(:load_polls, socket) do
-    try do
-      polls = list_polls()
+    polls = list_polls()
 
-      # Load category and tag data
-      available_categories = Polls.get_used_categories()
-      available_tags = Polls.get_popular_tags(15)
+    # Load category and tag data
+    available_categories = Polls.get_used_categories()
+    available_tags = Polls.get_popular_tags(15)
 
+    {:noreply,
+      socket
+      |> assign(:loading?, false)
+      |> assign(:error_loading?, false)
+      |> assign(:total_polls, length(polls))
+      |> assign(:available_categories, available_categories)
+      |> assign(:available_tags, available_tags)
+      |> apply_filters_and_search()}
+  rescue
+    _error ->
       {:noreply,
-       socket
-       |> assign(:loading?, false)
-       |> assign(:error_loading?, false)
-       |> assign(:total_polls, length(polls))
-       |> assign(:available_categories, available_categories)
-       |> assign(:available_tags, available_tags)
-       |> apply_filters_and_search()}
-    rescue
-      _error ->
-        {:noreply,
-         socket
-         |> assign(:loading?, false)
-         |> assign(:error_loading?, true)
-         |> put_flash(:error, "❌ Failed to load polls. Please try again.")}
-    end
+        socket
+        |> assign(:loading?, false)
+        |> assign(:error_loading?, true)
+        |> put_flash(:error, "❌ Failed to load polls. Please try again.")}
   end
 
   # Enhanced PubSub event handlers for comprehensive real-time updates
@@ -366,11 +364,9 @@ defmodule PoolLiteWeb.PollLive.Index do
 
   # Get all polls (cached or fresh)
   defp get_all_polls do
-    try do
-      Polls.list_polls_with_stats()
-    rescue
-      _ -> []
-    end
+    Polls.list_polls_with_stats()
+  rescue
+    _ -> []
   end
 
   # Check if poll is active (not expired)
