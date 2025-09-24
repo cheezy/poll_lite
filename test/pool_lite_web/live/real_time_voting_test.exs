@@ -4,6 +4,8 @@ defmodule PoolLiteWeb.RealTimeVotingTest do
   import Phoenix.LiveViewTest
   import PoolLite.PollsFixtures
 
+  @moduletag capture_log: true
+
   alias PoolLite.Polls
   alias Phoenix.PubSub
 
@@ -271,7 +273,7 @@ defmodule PoolLiteWeb.RealTimeVotingTest do
 
     test "syncs poll expiration status across all clients", %{conn: conn} do
       # Create a poll that will expire soon
-      future_time = DateTime.utc_now() |> DateTime.add(2, :second) |> DateTime.truncate(:second)
+      future_time = DateTime.utc_now() |> DateTime.add(1, :second) |> DateTime.truncate(:second)
 
       poll =
         poll_fixture(%{
@@ -289,8 +291,8 @@ defmodule PoolLiteWeb.RealTimeVotingTest do
       refute html1 =~ "expired"
       refute html2 =~ "expired"
 
-      # Wait for expiration
-      Process.sleep(3000)
+      # Wait for expiration (reduced from 3000ms to 1500ms)
+      Process.sleep(1500)
 
       # Update the poll to expired status in DB
       poll

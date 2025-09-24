@@ -166,9 +166,6 @@ defmodule PoolLiteWeb.PollLive.Index do
   @impl true
   def handle_info(:load_polls, socket) do
     try do
-      # Simulate loading delay for demonstration
-      Process.sleep(800)
-
       polls = list_polls()
 
       # Load category and tag data

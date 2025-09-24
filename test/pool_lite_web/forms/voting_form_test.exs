@@ -5,6 +5,9 @@ defmodule PoolLiteWeb.VotingFormTest do
   import PoolLite.PollsFixtures
 
   alias PoolLite.Polls
+  alias PoolLite.Repo
+
+  @moduletag capture_log: true
 
   describe "Voting Form Submissions" do
     setup do
@@ -118,17 +121,21 @@ defmodule PoolLiteWeb.VotingFormTest do
     end
 
     test "handles voting on expired polls", %{conn: conn} do
-      # Create an expired poll
-      {:ok, poll_temp} =
-        Polls.create_poll(%{
-          title: "Expired Poll",
-          description: "This poll has expired",
-          options: ["A", "B"],
-          expires_at: DateTime.add(DateTime.utc_now(), 1, :second)
-        })
+      # Create an expired poll using fixture, then update it to be expired
+      poll_temp = poll_fixture(%{
+        title: "Expired Poll",
+        description: "This poll has expired"
+      })
 
-      # Let it expire
-      Process.sleep(2000)
+      # Update the poll to be expired
+      past_time =
+        DateTime.utc_now()
+        |> DateTime.add(-60, :second)
+        |> DateTime.truncate(:second)
+
+      poll_temp
+      |> Ecto.Changeset.change(expires_at: past_time)
+      |> PoolLite.Repo.update!()
 
       {:ok, _show_live, html} = live(conn, ~p"/polls/#{poll_temp}")
 
@@ -165,7 +172,7 @@ defmodule PoolLiteWeb.VotingFormTest do
       {:ok, index_live, _html} = live(conn, ~p"/polls")
 
       # Wait for polls to load
-      Process.sleep(1000)
+      Process.sleep(100)
 
       # Perform search using the actual search input mechanism
       html =
@@ -181,7 +188,7 @@ defmodule PoolLiteWeb.VotingFormTest do
       {:ok, index_live, _html} = live(conn, ~p"/polls")
 
       # Wait for polls to load
-      Process.sleep(1000)
+      Process.sleep(100)
 
       # Submit empty search
       html =
@@ -197,7 +204,7 @@ defmodule PoolLiteWeb.VotingFormTest do
       {:ok, index_live, _html} = live(conn, ~p"/polls")
 
       # Wait for polls to load
-      Process.sleep(1000)
+      Process.sleep(100)
 
       # Try clicking a specific filter button
       html =
@@ -213,7 +220,7 @@ defmodule PoolLiteWeb.VotingFormTest do
       {:ok, index_live, _html} = live(conn, ~p"/polls")
 
       # Wait for polls to load
-      Process.sleep(1000)
+      Process.sleep(100)
 
       # Open sort menu if it exists
       if has_element?(index_live, "button[phx-click='toggle-sort-menu']") do
@@ -236,7 +243,7 @@ defmodule PoolLiteWeb.VotingFormTest do
       {:ok, index_live, _html} = live(conn, ~p"/polls")
 
       # Wait for polls to load
-      Process.sleep(1000)
+      Process.sleep(100)
 
       # Apply some filters first
       if has_element?(index_live, "input[phx-change='search']") do
