@@ -11,7 +11,13 @@ config :pool_lite, PoolLite.Repo,
   hostname: "localhost",
   database: "pool_lite_test#{System.get_env("MIX_TEST_PARTITION")}",
   pool: Ecto.Adapters.SQL.Sandbox,
-  pool_size: System.schedulers_online() * 2
+  pool_size: System.schedulers_online() * 2,
+  ownership_timeout: 60_000,
+  timeout: 60_000,
+  queue_target: 5000,
+  queue_interval: 10_000,
+  log: false,
+  show_sensitive_data_on_connection_error: false
 
 # We don't run a server during test. If one is required,
 # you can enable the server option below.
@@ -26,11 +32,13 @@ config :pool_lite, PoolLite.Mailer, adapter: Swoosh.Adapters.Test
 # Disable swoosh api client as it is only required for production adapters
 config :swoosh, :api_client, false
 
-# Print only warnings and errors during test
-config :logger, level: :warning
+# Configure logger for tests - suppress error logs to avoid Postgrex warnings
+config :logger, level: :critical
 
-# Disable logging from db_connection to suppress Postgrex disconnect messages
-config :db_connection, :log, false
+# Alternatively, if you want warnings but not errors:
+# config :logger,
+#   level: :warning,
+#   compile_time_purge_matching: [[level_lower_than: :critical]]
 
 # Initialize plugs at runtime for faster test compilation
 config :phoenix, :plug_init_mode, :runtime

@@ -39,7 +39,14 @@ defmodule PoolLite.DataCase do
   """
   def setup_sandbox(tags) do
     pid = Sandbox.start_owner!(PoolLite.Repo, shared: not tags[:async])
-    on_exit(fn -> Sandbox.stop_owner(pid) end)
+    on_exit(fn ->
+      # Gracefully stop the sandbox owner to prevent disconnection warnings
+      try do
+        Sandbox.stop_owner(pid)
+      rescue
+        _ -> :ok
+      end
+    end)
   end
 
   @doc """
