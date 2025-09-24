@@ -66,40 +66,66 @@ defmodule PoolLite.Polls.Poll do
     end
   end
 
+  @max_tags 10
+  @max_tag_length 50
+
   # Custom validation for tags
   defp validate_tags(changeset) do
     case get_change(changeset, :tags) do
-      nil ->
-        changeset
-
-      tags when is_list(tags) ->
-        cond do
-          length(tags) > 10 ->
-            add_error(changeset, :tags, "cannot have more than 10 tags")
-
-          Enum.any?(tags, &(!is_binary(&1))) ->
-            add_error(changeset, :tags, "all tags must be strings")
-
-          Enum.any?(tags, &(String.length(&1) > 50)) ->
-            add_error(changeset, :tags, "tags cannot be longer than 50 characters")
-
-          Enum.any?(tags, &(String.length(String.trim(&1)) == 0)) ->
-            add_error(changeset, :tags, "tags cannot be empty")
-
-          length(tags) != length(Enum.uniq(tags)) ->
-            add_error(changeset, :tags, "tags must be unique")
-
-          true ->
-            # Clean up tags: trim whitespace and convert to lowercase
-            clean_tags =
-              tags |> Enum.map(&String.trim/1) |> Enum.map(&String.downcase/1) |> Enum.uniq()
-
-            put_change(changeset, :tags, clean_tags)
-        end
-
-      _ ->
-        add_error(changeset, :tags, "must be a list")
+      nil -> changeset
+      tags when is_list(tags) -> validate_tag_list(changeset, tags)
+      _ -> add_error(changeset, :tags, "must be a list")
     end
+  end
+
+  defp validate_tag_list(changeset, tags) do
+    with :ok <- validate_tag_count(tags),
+         :ok <- validate_all_strings(tags),
+         :ok <- validate_tag_lengths(tags),
+         :ok <- validate_non_empty_tags(tags),
+         :ok <- validate_unique_tags(tags) do
+      clean_tags = clean_and_normalize_tags(tags)
+      put_change(changeset, :tags, clean_tags)
+    else
+      {:error, message} ->
+        add_error(changeset, :tags, message)
+    end
+  end
+
+  defp validate_tag_count(tags) when length(tags) > @max_tags,
+    do: {:error, "cannot have more than #{@max_tags} tags"}
+
+  defp validate_tag_count(_tags), do: :ok
+
+  defp validate_all_strings(tags) do
+    if Enum.all?(tags, &is_binary/1),
+      do: :ok,
+      else: {:error, "all tags must be strings"}
+  end
+
+  defp validate_tag_lengths(tags) do
+    if Enum.all?(tags, &(String.length(&1) <= @max_tag_length)),
+      do: :ok,
+      else: {:error, "tags cannot be longer than #{@max_tag_length} characters"}
+  end
+
+  defp validate_non_empty_tags(tags) do
+    if Enum.all?(tags, &(String.length(String.trim(&1)) > 0)),
+      do: :ok,
+      else: {:error, "tags cannot be empty"}
+  end
+
+  defp validate_unique_tags(tags) do
+    if length(tags) == length(Enum.uniq(tags)),
+      do: :ok,
+      else: {:error, "tags must be unique"}
+  end
+
+  defp clean_and_normalize_tags(tags) do
+    tags
+    |> Enum.map(&String.trim/1)
+    |> Enum.map(&String.downcase/1)
+    |> Enum.uniq()
   end
 
   # Helper function to check if a poll has expired

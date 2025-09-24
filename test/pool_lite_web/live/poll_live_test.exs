@@ -187,11 +187,11 @@ defmodule PoolLiteWeb.PollLiveTest do
           html =~ "You&#39;ve already voted"
 
       # If none of the above, just check that the page still renders without crashing
-      if not voting_success do
+      if voting_success do
+        assert voting_success
+      else
         # Basic page rendering
         assert html =~ "Cast Your Vote" or html =~ "Poll"
-      else
-        assert voting_success
       end
     end
 
