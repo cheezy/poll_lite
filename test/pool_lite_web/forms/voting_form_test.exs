@@ -4,9 +4,6 @@ defmodule PoolLiteWeb.VotingFormTest do
   import Phoenix.LiveViewTest
   import PoolLite.PollsFixtures
 
-  alias PoolLite.Polls
-  alias PoolLite.Repo
-
   @moduletag capture_log: true
 
   describe "Voting Form Submissions" do
