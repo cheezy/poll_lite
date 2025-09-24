@@ -100,7 +100,7 @@ defmodule PoolLiteWeb.UserSession do
 
       iex> valid_user_id?("user_1642428123_abc123")
       true
-      
+
       iex> valid_user_id?("invalid")
       false
   """
@@ -121,6 +121,8 @@ defmodule PoolLiteWeb.UserSession do
       iex> get_user_stats("user_abc123")
       %{votes_cast: 5, polls_voted: 3, last_vote_at: ~U[2024-01-17 10:30:00Z]}
   """
+  @spec get_user_stats(user_identifier :: String.t()) ::
+          %{votes_cast: integer(), polls_voted: integer(), last_vote_at: DateTime.t()}
   def get_user_stats(user_identifier) do
     alias PoolLite.Repo
     alias PoolLite.Polls.Vote
@@ -152,6 +154,7 @@ defmodule PoolLiteWeb.UserSession do
 
   Returns a similarity score from 0.0 to 1.0.
   """
+  @spec similarity_score(id1 :: String.t(), id2 :: String.t()) :: float()
   def similarity_score(id1, id2) when is_binary(id1) and is_binary(id2) do
     # Simple similarity based on timing (for demo purposes)
     # In production, you might use IP address, user agent fingerprinting, etc.
@@ -163,7 +166,7 @@ defmodule PoolLiteWeb.UserSession do
         cond do
           # Within 1 minute
           time_diff < 60 -> 0.9
-          # Within 5 minutes  
+          # Within 5 minutes
           time_diff < 300 -> 0.7
           # Within 1 hour
           time_diff < 3600 -> 0.5

@@ -270,7 +270,7 @@ defmodule PoolLiteWeb.PollLive.Index do
     {:noreply, socket}
   end
 
-  defp list_polls() do
+  defp list_polls do
     Polls.list_polls_with_stats()
   end
 

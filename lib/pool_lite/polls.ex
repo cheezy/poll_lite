@@ -1,12 +1,11 @@
-defmodule PoolLite.Polls do
-  @moduledoc """
+@moduledoc """
   The Polls context.
-  """
-
+"""
+defmodule PoolLite.Polls do
   import Ecto.Query, warn: false
   alias PoolLite.Repo
 
-  alias PoolLite.Polls.{Poll, Option, Vote, PubSub}
+  alias PoolLite.Polls.{Option, Poll, PubSub, Vote}
 
   @doc """
   Returns the list of polls with their options preloaded.
@@ -315,6 +314,8 @@ defmodule PoolLite.Polls do
       {:error, :poll_expired}
 
   """
+  @spec vote_for_option(poll_id :: integer(), option_id :: integer(), user_identifier :: String.t()) ::
+          {:ok, Vote.t()} | {:error, :already_voted | :poll_expired | :suspicious_activity}
   def vote_for_option(poll_id, option_id, user_identifier) do
     # Get poll and check if it's still active
     poll = get_poll!(poll_id)

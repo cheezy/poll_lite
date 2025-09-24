@@ -1,10 +1,9 @@
+@moduledoc false
 defmodule PoolLite.Polls.Poll do
   use Ecto.Schema
   import Ecto.Changeset
 
   alias PoolLite.Polls.{Option, Vote}
-
-  @moduledoc false
 
   schema "polls" do
     field :title, :string

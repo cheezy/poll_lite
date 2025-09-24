@@ -1,15 +1,14 @@
+@moduledoc """
+PubSub utilities for real-time poll updates.
+"""
 defmodule PoolLite.Polls.PubSub do
-  @moduledoc """
-  PubSub utilities for real-time poll updates.
-  """
-
   alias Phoenix.PubSub
 
   @pubsub PoolLite.PubSub
 
   # Topic patterns
   def poll_topic(poll_id), do: "poll:#{poll_id}"
-  def polls_topic(), do: "polls:all"
+  def polls_topic, do: "polls:all"
   def poll_stats_topic(poll_id), do: "poll_stats:#{poll_id}"
 
   @doc """
@@ -22,7 +21,7 @@ defmodule PoolLite.Polls.PubSub do
   @doc """
   Subscribe to general polls updates (creation, deletion, etc.).
   """
-  def subscribe_to_polls() do
+  def subscribe_to_polls do
     PubSub.subscribe(@pubsub, polls_topic())
   end
 
