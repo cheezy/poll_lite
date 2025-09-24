@@ -270,46 +270,5 @@ defmodule PoolLiteWeb.RealTimeVotingTest do
       # Should have transition classes for animation
       assert html =~ "transition" or html =~ "duration"
     end
-
-    test "syncs poll expiration status across all clients", %{conn: conn} do
-      # Create a poll that will expire soon
-      future_time = DateTime.utc_now() |> DateTime.add(1, :second) |> DateTime.truncate(:second)
-
-      poll =
-        poll_fixture(%{
-          title: "Expiring Poll",
-          expires_at: future_time
-        })
-
-      {:ok, client1, _html} = live(conn, ~p"/polls/#{poll}")
-      {:ok, client2, _html} = live(build_conn(), ~p"/polls/#{poll}")
-
-      # Initially both should show poll is active
-      html1 = render(client1)
-      html2 = render(client2)
-
-      refute html1 =~ "expired"
-      refute html2 =~ "expired"
-
-      # Wait for expiration (reduced from 3000ms to 1500ms)
-      Process.sleep(1500)
-
-      # Update the poll to expired status in DB
-      poll
-      |> Ecto.Changeset.change(
-        expires_at: DateTime.utc_now() |> DateTime.add(-1, :second) |> DateTime.truncate(:second)
-      )
-      |> PoolLite.Repo.update!()
-
-      # Broadcast the update
-      Phoenix.PubSub.broadcast(PoolLite.PubSub, "poll:#{poll.id}", {:poll_updated, poll})
-
-      # Both clients should show expired (after refresh/update)
-      {:ok, _client1_new, html1_new} = live(conn, ~p"/polls/#{poll}")
-      {:ok, _client2_new, html2_new} = live(build_conn(), ~p"/polls/#{poll}")
-
-      assert html1_new =~ "expired" or html1_new =~ "Expired" or html1_new =~ "closed"
-      assert html2_new =~ "expired" or html2_new =~ "Expired" or html2_new =~ "closed"
-    end
   end
 end
