@@ -100,17 +100,19 @@ defmodule PoolLite.MixProject do
   defp test_coverage do
     [
       ignore_modules: [
+        PoolLite.DataCase,
+        PoolLite.Repo,
+        PoolLite.Application,
+        PoolLite.TestHelpers,
+        PoolLite.PoolsFixtures,
         PoolLiteWeb.Layouts,
         PoolLiteWeb.PageHTML,
         PoolLiteWeb.CoreComponents,
-        PoolLite.DataCase,
-        PoolLite.Repo,
         PoolLiteWeb.ErrorHTML,
         PoolLiteWeb.Router,
-        PoolLite.Application,
-        PoolLite.TestHelpers,
         PoolLiteWeb.ConnCase,
-        PoolLiteWeb.Telemetry
+        PoolLiteWeb.Telemetry,
+        PoolLiteWeb.Plugs.EnsureUserSession
       ]
     ]
   end
