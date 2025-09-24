@@ -283,74 +283,88 @@ defmodule PoolLiteWeb.PollLive.Index do
   defp apply_filters_and_search(socket) do
     all_polls = get_all_polls()
 
-    # Apply search filter
-    search_filtered =
-      if socket.assigns.search_query == "" do
-        all_polls
-      else
-        query = String.downcase(socket.assigns.search_query)
-
-        Enum.filter(all_polls, fn poll ->
-          String.contains?(String.downcase(poll.title), query) or
-            String.contains?(String.downcase(poll.description || ""), query) or
-            (poll.tags && Enum.any?(poll.tags, &String.contains?(String.downcase(&1), query)))
-        end)
-      end
-
-    # Apply category filter
-    category_filtered =
-      if socket.assigns.selected_category == "" do
-        search_filtered
-      else
-        Enum.filter(search_filtered, fn poll ->
-          poll.category == socket.assigns.selected_category
-        end)
-      end
-
-    # Apply tag filter
-    tag_filtered =
-      if socket.assigns.selected_tag == "" do
-        category_filtered
-      else
-        Enum.filter(category_filtered, fn poll ->
-          poll.tags && socket.assigns.selected_tag in poll.tags
-        end)
-      end
-
-    # Apply status filter
-    status_filtered =
-      case socket.assigns.current_filter do
-        "all" -> tag_filtered
-        "active" -> Enum.filter(tag_filtered, &poll_is_active?/1)
-        "expired" -> Enum.filter(tag_filtered, &poll_is_expired?/1)
-        "recent" -> Enum.filter(tag_filtered, &poll_is_recent?/1)
-        _ -> tag_filtered
-      end
-
-    # Apply sorting
-    sorted_polls =
-      case socket.assigns.current_sort do
-        "newest" -> Enum.sort_by(status_filtered, & &1.inserted_at, {:desc, DateTime})
-        "oldest" -> Enum.sort_by(status_filtered, & &1.inserted_at, {:asc, DateTime})
-        "most_votes" -> Enum.sort_by(status_filtered, &get_poll_vote_count/1, :desc)
-        "least_votes" -> Enum.sort_by(status_filtered, &get_poll_vote_count/1, :asc)
-        "alphabetical" -> Enum.sort_by(status_filtered, & &1.title)
-        _ -> status_filtered
-      end
-
-    # Calculate filter counts
-    filter_counts = %{
-      all: length(all_polls),
-      active: length(Enum.filter(all_polls, &poll_is_active?/1)),
-      expired: length(Enum.filter(all_polls, &poll_is_expired?/1)),
-      recent: length(Enum.filter(all_polls, &poll_is_recent?/1))
-    }
+    filtered_polls =
+      all_polls
+      |> apply_search_filter(socket.assigns.search_query)
+      |> apply_category_filter(socket.assigns.selected_category)
+      |> apply_tag_filter(socket.assigns.selected_tag)
+      |> apply_status_filter(socket.assigns.current_filter)
+      |> apply_sorting(socket.assigns.current_sort)
 
     socket
-    |> assign(:filtered_polls, sorted_polls)
-    |> assign(:filter_counts, filter_counts)
-    |> assign(:polls_empty?, sorted_polls == [])
-    |> stream(:polls, sorted_polls, reset: true)
+    |> assign(:filtered_polls, filtered_polls)
+    |> assign(:filter_counts, calculate_filter_counts(all_polls))
+    |> assign(:polls_empty?, filtered_polls == [])
+    |> stream(:polls, filtered_polls, reset: true)
+  end
+
+  defp apply_search_filter(polls, ""), do: polls
+
+  defp apply_search_filter(polls, search_query) do
+    query = String.downcase(search_query)
+
+    Enum.filter(polls, fn poll ->
+      matches_search_query?(poll, query)
+    end)
+  end
+
+  defp matches_search_query?(poll, query) do
+    String.contains?(String.downcase(poll.title), query) or
+      String.contains?(String.downcase(poll.description || ""), query) or
+      poll_tags_match?(poll.tags, query)
+  end
+
+  defp poll_tags_match?(nil, _query), do: false
+
+  defp poll_tags_match?(tags, query) do
+    Enum.any?(tags, &String.contains?(String.downcase(&1), query))
+  end
+
+  defp apply_category_filter(polls, ""), do: polls
+
+  defp apply_category_filter(polls, category) do
+    Enum.filter(polls, fn poll -> poll.category == category end)
+  end
+
+  defp apply_tag_filter(polls, ""), do: polls
+
+  defp apply_tag_filter(polls, selected_tag) do
+    Enum.filter(polls, fn poll ->
+      poll.tags && selected_tag in poll.tags
+    end)
+  end
+
+  defp apply_status_filter(polls, filter) do
+    case filter do
+      "active" -> Enum.filter(polls, &poll_is_active?/1)
+      "expired" -> Enum.filter(polls, &poll_is_expired?/1)
+      "recent" -> Enum.filter(polls, &poll_is_recent?/1)
+      _ -> polls
+    end
+  end
+
+  defp apply_sorting(polls, sort_type) do
+    case sort_type do
+      "newest" -> Enum.sort_by(polls, & &1.inserted_at, {:desc, DateTime})
+      "oldest" -> Enum.sort_by(polls, & &1.inserted_at, {:asc, DateTime})
+      "most_votes" -> Enum.sort_by(polls, &get_poll_vote_count/1, :desc)
+      "least_votes" -> Enum.sort_by(polls, &get_poll_vote_count/1, :asc)
+      "alphabetical" -> Enum.sort_by(polls, & &1.title)
+      _ -> polls
+    end
+  end
+
+  defp calculate_filter_counts(polls) do
+    %{
+      all: length(polls),
+      active: count_by_filter(polls, &poll_is_active?/1),
+      expired: count_by_filter(polls, &poll_is_expired?/1),
+      recent: count_by_filter(polls, &poll_is_recent?/1)
+    }
+  end
+
+  defp count_by_filter(polls, filter_fn) do
+    polls |> Enum.filter(filter_fn) |> length()
   end
 
   # Get all polls (cached or fresh)
