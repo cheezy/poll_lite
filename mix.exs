@@ -101,19 +101,19 @@ defmodule PoolLite.MixProject do
     [
       summary: [threshold: 85],
       ignore_modules: [
-        PoolLite.DataCase,
-        PoolLite.Repo,
         PoolLite.Application,
-        PoolLite.TestHelpers,
+        PoolLite.DataCase,
         PoolLite.PollsFixtures,
-        PoolLiteWeb.Layouts,
-        PoolLiteWeb.PageHTML,
+        PoolLite.Repo,
+        PoolLite.TestHelpers,
+        PoolLiteWeb.ConnCase,
         PoolLiteWeb.CoreComponents,
         PoolLiteWeb.ErrorHTML,
+        PoolLiteWeb.Layouts,
+        PoolLiteWeb.PageHTML,
+        PoolLiteWeb.Plugs.EnsureUserSession,
         PoolLiteWeb.Router,
-        PoolLiteWeb.ConnCase,
-        PoolLiteWeb.Telemetry,
-        PoolLiteWeb.Plugs.EnsureUserSession
+        PoolLiteWeb.Telemetry
       ]
     ]
   end

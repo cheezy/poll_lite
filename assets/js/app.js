@@ -326,6 +326,35 @@ function showShareMessage(message) {
   }, 3000)
 }
 
+// Theme indicator position update
+function updateThemeIndicator() {
+  const indicator = document.getElementById('theme-indicator');
+  if (!indicator) return;
+  
+  const currentTheme = localStorage.getItem('phx:theme') || 'system';
+  
+  switch(currentTheme) {
+    case 'system':
+      indicator.style.left = '0%';
+      break;
+    case 'light':
+      indicator.style.left = '33.333%';
+      break;
+    case 'dark':
+      indicator.style.left = '66.666%';
+      break;
+  }
+}
+
+// Update indicator on theme change
+window.addEventListener('phx:set-theme', (e) => {
+  setTimeout(updateThemeIndicator, 50);
+});
+
+// Update indicator on page load
+document.addEventListener('DOMContentLoaded', updateThemeIndicator);
+window.addEventListener('phx:page', updateThemeIndicator);
+
 // connect if there are any LiveViews on the page
 liveSocket.connect()
 
