@@ -159,31 +159,34 @@ defmodule PoolLite.Polls.Poll do
     ]
   end
 
+  @category_icons %{
+    "Technology" => "💻",
+    "Sports" => "⚽",
+    "Entertainment" => "🎬",
+    "Politics" => "🏛️",
+    "Education" => "📚",
+    "Business" => "💼",
+    "Health" => "🏥",
+    "Science" => "🔬",
+    "Travel" => "✈️",
+    "Food" => "🍕",
+    "Lifestyle" => "🌟",
+    "Gaming" => "🎮",
+    "Music" => "🎵",
+    "Movies" => "🎭",
+    "Books" => "📖",
+    "Art" => "🎨",
+    "Photography" => "📸",
+    "Fashion" => "👗"
+  }
+
   # Get category display name with icon
   def category_display(%__MODULE__{category: nil}), do: {"📝", "General"}
 
   def category_display(%__MODULE__{category: category}) do
-    case category do
-      "Technology" -> {"💻", "Technology"}
-      "Sports" -> {"⚽", "Sports"}
-      "Entertainment" -> {"🎬", "Entertainment"}
-      "Politics" -> {"🏛️", "Politics"}
-      "Education" -> {"📚", "Education"}
-      "Business" -> {"💼", "Business"}
-      "Health" -> {"🏥", "Health"}
-      "Science" -> {"🔬", "Science"}
-      "Travel" -> {"✈️", "Travel"}
-      "Food" -> {"🍕", "Food"}
-      "Lifestyle" -> {"🌟", "Lifestyle"}
-      "Gaming" -> {"🎮", "Gaming"}
-      "Music" -> {"🎵", "Music"}
-      "Movies" -> {"🎭", "Movies"}
-      "Books" -> {"📖", "Books"}
-      "Art" -> {"🎨", "Art"}
-      "Photography" -> {"📸", "Photography"}
-      "Fashion" -> {"👗", "Fashion"}
-      _ -> {"📝", category || "General"}
-    end
+    icon = Map.get(@category_icons, category, "📝")
+    display_name = category || "General"
+    {icon, display_name}
   end
 
   # Get formatted tags for display
