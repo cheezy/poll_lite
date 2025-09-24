@@ -93,7 +93,7 @@ defmodule PoolLiteWeb.PollLive.Index do
          |> assign(:deleting_poll_id, nil)
          |> assign(:polls_empty?, polls == [])
          |> assign(:total_polls, length(polls))
-         |> stream_delete(:polls, poll)
+         |> stream(:polls, polls, reset: true)
          |> put_flash(:info, "✅ Poll deleted successfully")}
 
       {:error, _changeset} ->

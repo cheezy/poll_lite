@@ -99,12 +99,13 @@ defmodule PoolLite.MixProject do
 
   defp test_coverage do
     [
+      summary: [threshold: 85],
       ignore_modules: [
         PoolLite.DataCase,
         PoolLite.Repo,
         PoolLite.Application,
         PoolLite.TestHelpers,
-        PoolLite.PoolsFixtures,
+        PoolLite.PollsFixtures,
         PoolLiteWeb.Layouts,
         PoolLiteWeb.PageHTML,
         PoolLiteWeb.CoreComponents,

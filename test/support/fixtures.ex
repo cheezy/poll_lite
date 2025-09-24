@@ -18,7 +18,8 @@ defmodule PoolLite.PollsFixtures do
     attrs = Enum.into(attrs, default_attrs)
 
     {:ok, poll} = Polls.create_poll(attrs)
-    poll
+    # Preload associations to avoid NotLoaded errors
+    Polls.get_poll!(poll.id)
   end
 
   @doc """
