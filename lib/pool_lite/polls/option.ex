@@ -1,5 +1,5 @@
-@moduledoc false
 defmodule PoolLite.Polls.Option do
+  @moduledoc false
   use Ecto.Schema
   import Ecto.Changeset
 

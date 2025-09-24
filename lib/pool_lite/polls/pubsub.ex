@@ -1,7 +1,8 @@
-@moduledoc """
-PubSub utilities for real-time poll updates.
-"""
 defmodule PoolLite.Polls.PubSub do
+  @moduledoc """
+  PubSub utilities for real-time poll updates.
+  """
+
   alias Phoenix.PubSub
 
   @pubsub PoolLite.PubSub

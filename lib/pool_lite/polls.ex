@@ -1,7 +1,8 @@
-@moduledoc """
-  The Polls context.
-"""
 defmodule PoolLite.Polls do
+  @moduledoc """
+  The Polls context.
+  """
+
   import Ecto.Query, warn: false
   alias PoolLite.Repo
 
