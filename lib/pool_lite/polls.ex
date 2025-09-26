@@ -248,69 +248,68 @@ defmodule PoolLite.Polls do
   """
   @spec update_poll(Poll.t(), map) :: {:ok, Poll.t()} | {:error, Ecto.Changeset.t()}
   def update_poll(%Poll{} = poll, attrs) do
-    options = Map.get(attrs, "options", Map.get(attrs, :options, []))
-    poll_attrs = Map.drop(attrs, ["options", :options])
+    {options, poll_attrs} = extract_options_and_poll_attrs(attrs)
 
-    case options do
-      [] ->
-        # No options provided, just update poll attributes
-        poll
-        |> Poll.changeset(poll_attrs)
-        |> Repo.update()
-
-      new_options ->
-        # Update poll with new options
-        Ecto.Multi.new()
-        |> Ecto.Multi.update(:poll, Poll.changeset(poll, poll_attrs))
-        |> Ecto.Multi.run(:update_options, fn repo, %{poll: updated_poll} ->
-          # Delete existing options and votes
-          from(v in Vote, where: v.poll_id == ^updated_poll.id)
-          |> repo.delete_all()
-
-          from(o in Option, where: o.poll_id == ^updated_poll.id)
-          |> repo.delete_all()
-
-          # Insert new options
-          now = DateTime.utc_now() |> DateTime.truncate(:second)
-
-          option_attrs =
-            new_options
-            |> Enum.filter(&(String.trim(&1) != ""))
-            |> Enum.map(fn text ->
-              %{
-                text: String.trim(text),
-                poll_id: updated_poll.id,
-                votes_count: 0,
-                inserted_at: now,
-                updated_at: now
-              }
-            end)
-
-          case option_attrs do
-            [] ->
-              {:error, :no_options}
-
-            attrs ->
-              {_count, _options} = repo.insert_all(Option, attrs, returning: true)
-              {:ok, updated_poll}
-          end
-        end)
-        |> Repo.transaction()
-        |> case do
-          {:ok, %{poll: poll}} ->
-            updated_poll = get_poll!(poll.id)
-            PubSub.broadcast_poll_updated(updated_poll)
-            {:ok, updated_poll}
-
-          {:error, :update_options, :no_options, _} ->
-            {:error,
-             Poll.changeset(poll, poll_attrs)
-             |> Ecto.Changeset.add_error(:options, "must have at least one option")}
-
-          {:error, :poll, changeset, _} ->
-            {:error, changeset}
-        end
+    if Enum.empty?(options) do
+      update_poll_attributes_only(poll, poll_attrs)
+    else
+      update_poll_with_options(poll, poll_attrs, options)
     end
+  end
+
+  # Update only poll attributes without changing options
+  defp update_poll_attributes_only(poll, poll_attrs) do
+    poll
+    |> Poll.changeset(poll_attrs)
+    |> Repo.update()
+  end
+
+  # Update poll with new options (replaces all existing options)
+  defp update_poll_with_options(poll, poll_attrs, new_options) do
+    Ecto.Multi.new()
+    |> Ecto.Multi.update(:poll, Poll.changeset(poll, poll_attrs))
+    |> Ecto.Multi.run(:update_options, &replace_poll_options(&1, &2, new_options))
+    |> Repo.transaction()
+    |> handle_update_poll_result(poll, poll_attrs)
+  end
+
+  # Replace all existing options with new ones
+  defp replace_poll_options(repo, %{poll: updated_poll}, new_options) do
+    with :ok <- clear_existing_poll_data(repo, updated_poll.id),
+         {:ok, _options} <- create_new_poll_options(repo, updated_poll.id, new_options) do
+      {:ok, updated_poll}
+    end
+  end
+
+  # Clear existing votes and options for the poll
+  defp clear_existing_poll_data(repo, poll_id) do
+    from(v in Vote, where: v.poll_id == ^poll_id) |> repo.delete_all()
+    from(o in Option, where: o.poll_id == ^poll_id) |> repo.delete_all()
+    :ok
+  end
+
+  # Create new options for the poll (reuses logic from create_poll)
+  defp create_new_poll_options(repo, poll_id, new_options) do
+    new_options
+    |> prepare_option_attrs(poll_id)
+    |> insert_options(repo)
+  end
+
+  # Handle the result of update_poll transaction
+  defp handle_update_poll_result({:ok, %{poll: poll}}, _original_poll, _poll_attrs) do
+    updated_poll = get_poll!(poll.id)
+    PubSub.broadcast_poll_updated(updated_poll)
+    {:ok, updated_poll}
+  end
+
+  defp handle_update_poll_result({:error, :update_options, :no_options, _}, original_poll, poll_attrs) do
+    {:error,
+     Poll.changeset(original_poll, poll_attrs)
+     |> Ecto.Changeset.add_error(:options, "must have at least one option")}
+  end
+
+  defp handle_update_poll_result({:error, :poll, changeset, _}, _original_poll, _poll_attrs) do
+    {:error, changeset}
   end
 
   @doc """
