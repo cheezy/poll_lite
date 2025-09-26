@@ -152,8 +152,10 @@ defmodule PoolLiteWeb.UserSessionTest do
     end
 
     test "requires minimum length" do
-      short_id = "user_12345"  # Exactly 10 characters
-      long_id = "user_123456"  # 11 characters
+      # Exactly 10 characters
+      short_id = "user_12345"
+      # 11 characters
+      long_id = "user_123456"
 
       assert UserSession.valid_user_id?(short_id) == false
       assert UserSession.valid_user_id?(long_id) == true
@@ -207,10 +209,11 @@ defmodule PoolLiteWeb.UserSessionTest do
       user_id = "user_multiple_votes_123"
 
       # Create poll with multiple options
-      poll = PollsFixtures.poll_fixture(%{
-        title: "Multi-option Poll",
-        options: ["Option A", "Option B", "Option C"]
-      })
+      poll =
+        PollsFixtures.poll_fixture(%{
+          title: "Multi-option Poll",
+          options: ["Option A", "Option B", "Option C"]
+        })
 
       # Vote for first option
       option1 = Enum.at(poll.options, 0)
@@ -246,7 +249,8 @@ defmodule PoolLiteWeb.UserSessionTest do
     test "returns medium-high score for identifiers created within 5 minutes" do
       timestamp = DateTime.utc_now() |> DateTime.to_unix()
       id1 = "user_#{timestamp}_abc123"
-      id2 = "user_#{timestamp + 180}_def456"  # 3 minutes later
+      # 3 minutes later
+      id2 = "user_#{timestamp + 180}_def456"
 
       score = UserSession.similarity_score(id1, id2)
 
@@ -256,7 +260,8 @@ defmodule PoolLiteWeb.UserSessionTest do
     test "returns medium score for identifiers created within 1 hour" do
       timestamp = DateTime.utc_now() |> DateTime.to_unix()
       id1 = "user_#{timestamp}_abc123"
-      id2 = "user_#{timestamp + 1800}_def456"  # 30 minutes later
+      # 30 minutes later
+      id2 = "user_#{timestamp + 1800}_def456"
 
       score = UserSession.similarity_score(id1, id2)
 
@@ -266,7 +271,8 @@ defmodule PoolLiteWeb.UserSessionTest do
     test "returns low score for identifiers created far apart" do
       timestamp = DateTime.utc_now() |> DateTime.to_unix()
       id1 = "user_#{timestamp}_abc123"
-      id2 = "user_#{timestamp + 7200}_def456"  # 2 hours later
+      # 2 hours later
+      id2 = "user_#{timestamp + 7200}_def456"
 
       score = UserSession.similarity_score(id1, id2)
 
@@ -286,7 +292,8 @@ defmodule PoolLiteWeb.UserSessionTest do
 
       score = UserSession.similarity_score(id1, id2)
 
-      assert score == 0.9  # Same timestamp = within 1 minute
+      # Same timestamp = within 1 minute
+      assert score == 0.9
     end
   end
 

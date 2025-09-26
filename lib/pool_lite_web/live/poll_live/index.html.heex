@@ -2,7 +2,9 @@
   <.header>
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <h1 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Live Polls & Voting</h1>
+        <h1 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+          Live Polls & Voting
+        </h1>
         <div class="mt-1 sm:mt-2">
           <p class="text-sm sm:text-base text-gray-600 dark:text-gray-300">
             Create polls and vote in real-time with animated results
@@ -72,8 +74,10 @@
             class={[
               "px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200",
               if(@current_filter == "all",
-                do: "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700",
-                else: "bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600"
+                do:
+                  "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700",
+                else:
+                  "bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600"
               )
             ]}
           >
@@ -85,8 +89,10 @@
             class={[
               "px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200",
               if(@current_filter == "active",
-                do: "bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700",
-                else: "bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600"
+                do:
+                  "bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700",
+                else:
+                  "bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600"
               )
             ]}
           >
@@ -98,8 +104,10 @@
             class={[
               "px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200",
               if(@current_filter == "expired",
-                do: "bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-700",
-                else: "bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600"
+                do:
+                  "bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-700",
+                else:
+                  "bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600"
               )
             ]}
           >
@@ -111,8 +119,10 @@
             class={[
               "px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-200",
               if(@current_filter == "recent",
-                do: "bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-700",
-                else: "bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600"
+                do:
+                  "bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-700",
+                else:
+                  "bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600"
               )
             ]}
           >
@@ -129,10 +139,16 @@
               class="inline-flex items-center justify-between px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 min-w-[140px]"
             >
               <span class="flex items-center">
-                <.icon name="hero-bars-3-bottom-left" class="w-4 h-4 mr-1 text-gray-500 dark:text-gray-400" />
+                <.icon
+                  name="hero-bars-3-bottom-left"
+                  class="w-4 h-4 mr-1 text-gray-500 dark:text-gray-400"
+                />
                 {format_sort(@current_sort)}
               </span>
-              <.icon name="hero-chevron-down" class="w-3 h-3 text-gray-400 dark:text-gray-500 ml-2" />
+              <.icon
+                name="hero-chevron-down"
+                class="w-3 h-3 text-gray-400 dark:text-gray-500 ml-2"
+              />
             </button>
 
             <div
@@ -155,7 +171,8 @@
                   class={[
                     "block w-full text-left px-3 py-2 text-sm transition-colors duration-200 hover:bg-gray-50 dark:hover:bg-gray-700",
                     if(@current_sort == sort_option,
-                      do: "bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-300 font-medium",
+                      do:
+                        "bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-300 font-medium",
                       else: "text-gray-700 dark:text-gray-300"
                     )
                   ]}
@@ -198,7 +215,9 @@
       >
         <div class="flex items-center justify-between text-sm">
           <span class="text-gray-600 dark:text-gray-400">
-            <span class="font-medium text-gray-900 dark:text-white">{length(@filtered_polls)}</span>
+            <span class="font-medium text-gray-900 dark:text-white">
+              {length(@filtered_polls)}
+            </span>
             {if length(@filtered_polls) == 1, do: "poll", else: "polls"}
             <span :if={@search_query != ""}>
               matching "<span class="font-medium">{@search_query}</span>"
@@ -227,7 +246,9 @@
       <div class="mx-auto w-16 h-16 sm:w-20 sm:h-20 mb-4 bg-red-100 rounded-full flex items-center justify-center">
         <.icon name="hero-exclamation-triangle" class="w-8 h-8 sm:w-10 sm:h-10 text-red-600" />
       </div>
-      <h3 class="text-base sm:text-lg font-medium text-gray-900 dark:text-white mb-2">Failed to load polls</h3>
+      <h3 class="text-base sm:text-lg font-medium text-gray-900 dark:text-white mb-2">
+        Failed to load polls
+      </h3>
       <p class="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-6 max-w-sm mx-auto">
         Something went wrong while loading the polls. Please try again.
       </p>
@@ -283,7 +304,9 @@
 <!-- Empty state when no polls exist -->
     <div :if={@polls_empty? && !@loading?} class="text-center py-8 sm:py-12 px-4">
       <.icon name="hero-chart-bar" class="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-gray-400 mb-4" />
-      <h3 class="text-base sm:text-lg font-medium text-gray-900 dark:text-white mb-2">No polls yet</h3>
+      <h3 class="text-base sm:text-lg font-medium text-gray-900 dark:text-white mb-2">
+        No polls yet
+      </h3>
       <p class="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-6 max-w-sm mx-auto">
         Get started by creating your first poll!
       </p>
@@ -397,7 +420,10 @@
               >
                 #{tag}
               </span>
-              <span :if={poll.tags && length(poll.tags) > 3} class="text-xs text-gray-500 dark:text-gray-400">
+              <span
+                :if={poll.tags && length(poll.tags) > 3}
+                class="text-xs text-gray-500 dark:text-gray-400"
+              >
                 +{length(poll.tags) - 3} more
               </span>
             </div>
@@ -407,7 +433,9 @@
               <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
                 <span class="hidden sm:inline">Activity</span>
                 <span class="sm:hidden text-xs">●</span>
-                <span class="font-medium text-green-600 dark:text-green-400 text-xs sm:text-xs">Live</span>
+                <span class="font-medium text-green-600 dark:text-green-400 text-xs sm:text-xs">
+                  Live
+                </span>
               </div>
               <div class="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 overflow-hidden">
                 <div
@@ -429,7 +457,9 @@
 <!-- Action buttons at bottom with responsive layout -->
             <div class="mt-auto pt-2 sm:pt-3 border-t border-gray-100 dark:border-gray-700">
               <div class="flex items-center justify-between">
-                <span class="text-xs text-gray-400 dark:text-gray-500 hidden sm:block">Poll Actions</span>
+                <span class="text-xs text-gray-400 dark:text-gray-500 hidden sm:block">
+                  Poll Actions
+                </span>
                 <span class="text-xs text-gray-400 dark:text-gray-500 sm:hidden">•••</span>
                 <div class="flex items-center space-x-1">
                   <!-- Edit button with enhanced micro-interactions -->

@@ -172,20 +172,20 @@ defmodule PoolLiteWeb.PollLive.Index do
     available_tags = Polls.get_popular_tags(15)
 
     {:noreply,
-      socket
-      |> assign(:loading?, false)
-      |> assign(:error_loading?, false)
-      |> assign(:total_polls, length(polls))
-      |> assign(:available_categories, available_categories)
-      |> assign(:available_tags, available_tags)
-      |> apply_filters_and_search()}
+     socket
+     |> assign(:loading?, false)
+     |> assign(:error_loading?, false)
+     |> assign(:total_polls, length(polls))
+     |> assign(:available_categories, available_categories)
+     |> assign(:available_tags, available_tags)
+     |> apply_filters_and_search()}
   rescue
     _error ->
       {:noreply,
-        socket
-        |> assign(:loading?, false)
-        |> assign(:error_loading?, true)
-        |> put_flash(:error, "❌ Failed to load polls. Please try again.")}
+       socket
+       |> assign(:loading?, false)
+       |> assign(:error_loading?, true)
+       |> put_flash(:error, "❌ Failed to load polls. Please try again.")}
   end
 
   # Enhanced PubSub event handlers for comprehensive real-time updates
@@ -304,15 +304,15 @@ defmodule PoolLiteWeb.PollLive.Index do
   end
 
   defp matches_search_query?(poll, query) do
-    String.downcase(poll.title) |>String.contains?(query) or
-    String.downcase(poll.description || "") |> String.contains?(query) or
+    String.downcase(poll.title) |> String.contains?(query) or
+      String.downcase(poll.description || "") |> String.contains?(query) or
       poll_tags_match?(poll.tags, query)
   end
 
   defp poll_tags_match?(nil, _query), do: false
 
   defp poll_tags_match?(tags, query) do
-    Enum.any?(tags, &String.downcase(&1) |> String.contains?(query))
+    Enum.any?(tags, &(String.downcase(&1) |> String.contains?(query)))
   end
 
   defp apply_category_filter(polls, ""), do: polls

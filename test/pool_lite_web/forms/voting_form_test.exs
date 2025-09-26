@@ -119,10 +119,11 @@ defmodule PoolLiteWeb.VotingFormTest do
 
     test "handles voting on expired polls", %{conn: conn} do
       # Create an expired poll using fixture, then update it to be expired
-      poll_temp = poll_fixture(%{
-        title: "Expired Poll",
-        description: "This poll has expired"
-      })
+      poll_temp =
+        poll_fixture(%{
+          title: "Expired Poll",
+          description: "This poll has expired"
+        })
 
       # Update the poll to be expired
       past_time =

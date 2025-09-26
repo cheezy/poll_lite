@@ -114,7 +114,7 @@ defmodule PoolLiteWeb.Layouts do
   def theme_toggle(assigns) do
     ~H"""
     <div class="card relative flex flex-row items-center border-2 border-base-300 bg-base-300 rounded-full">
-      <div 
+      <div
         id="theme-indicator"
         class="absolute w-1/3 h-full rounded-full border-1 border-base-200 bg-base-100 brightness-200 transition-[left]"
         style="left: 0%"

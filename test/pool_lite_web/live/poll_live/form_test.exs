@@ -18,11 +18,12 @@ defmodule PoolLiteWeb.PollLive.FormTest do
     end
 
     test "mounts with :edit action", %{conn: conn} do
-      poll = poll_fixture(%{
-        title: "Edit Test Poll",
-        description: "Test Description",
-        options: ["Option A", "Option B", "Option C"]
-      })
+      poll =
+        poll_fixture(%{
+          title: "Edit Test Poll",
+          description: "Test Description",
+          options: ["Option A", "Option B", "Option C"]
+        })
 
       {:ok, _view, html} = live(conn, ~p"/polls/#{poll}/edit")
 
@@ -56,11 +57,12 @@ defmodule PoolLiteWeb.PollLive.FormTest do
     end
 
     test "loads poll data correctly for edit", %{conn: conn} do
-      poll = poll_fixture(%{
-        title: "Existing Poll",
-        category: "General",
-        tags: ["tag1", "tag2"]
-      })
+      poll =
+        poll_fixture(%{
+          title: "Existing Poll",
+          category: "General",
+          tags: ["tag1", "tag2"]
+        })
 
       {:ok, _view, html} = live(conn, ~p"/polls/#{poll}/edit")
 
@@ -101,7 +103,8 @@ defmodule PoolLiteWeb.PollLive.FormTest do
       {:ok, view, _html} = live(conn, ~p"/polls/new")
 
       # Add tags using the proper event
-      view |> render_keydown("tag_input_keydown", %{"key" => "Enter", "value" => "tag1, tag2, tag3"})
+      view
+      |> render_keydown("tag_input_keydown", %{"key" => "Enter", "value" => "tag1, tag2, tag3"})
 
       html = render(view)
       assert html =~ "tag1"
@@ -235,13 +238,15 @@ defmodule PoolLiteWeb.PollLive.FormTest do
       view
       |> form("#poll-form", %{
         poll: %{title: ""},
-        options: %{"0" => "Option One"}  # Only one option
+        # Only one option
+        options: %{"0" => "Option One"}
       })
       |> render_submit()
 
       html = render(view)
       assert html =~ "can&#39;t be blank"
-      assert html =~ "New Poll"  # Still on new page
+      # Still on new page
+      assert html =~ "New Poll"
     end
 
     test "filters empty options before saving", %{conn: conn} do
@@ -342,7 +347,8 @@ defmodule PoolLiteWeb.PollLive.FormTest do
       {:ok, view, _html} = live(conn, ~p"/polls/new")
 
       # Simulate entering tags
-      view |> render_keydown("tag_input_keydown", %{"key" => "Enter", "value" => "gaming, sports"})
+      view
+      |> render_keydown("tag_input_keydown", %{"key" => "Enter", "value" => "gaming, sports"})
 
       html = render(view)
       assert html =~ "gaming"
@@ -363,7 +369,8 @@ defmodule PoolLiteWeb.PollLive.FormTest do
       {:ok, view, _html} = live(conn, ~p"/polls/new")
 
       # Add some tags first
-      view |> render_keydown("tag_input_keydown", %{"key" => "Enter", "value" => "tag1, tag2, tag3"})
+      view
+      |> render_keydown("tag_input_keydown", %{"key" => "Enter", "value" => "tag1, tag2, tag3"})
 
       # Remove middle tag
       view |> render_click("remove_tag", %{"index" => "1"})
@@ -391,7 +398,11 @@ defmodule PoolLiteWeb.PollLive.FormTest do
     test "filters duplicate tags", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/polls/new")
 
-      view |> render_keydown("tag_input_keydown", %{"key" => "Enter", "value" => "duplicate, duplicate, unique"})
+      view
+      |> render_keydown("tag_input_keydown", %{
+        "key" => "Enter",
+        "value" => "duplicate, duplicate, unique"
+      })
 
       html = render(view)
       # The tag "duplicate" should only appear once in the tag list
@@ -405,7 +416,8 @@ defmodule PoolLiteWeb.PollLive.FormTest do
       {:ok, view, _html} = live(conn, ~p"/polls/new")
 
       # Add tags
-      view |> render_keydown("tag_input_keydown", %{"key" => "Enter", "value" => "elixir, phoenix"})
+      view
+      |> render_keydown("tag_input_keydown", %{"key" => "Enter", "value" => "elixir, phoenix"})
 
       view
       |> form("#poll-form", %{
@@ -455,7 +467,8 @@ defmodule PoolLiteWeb.PollLive.FormTest do
       view |> element("button", "Add Option") |> render_click()
 
       # The view maintains the activity count internally
-      assert true  # Activity is tracked but not necessarily visible in HTML
+      # Activity is tracked but not necessarily visible in HTML
+      assert true
     end
   end
 

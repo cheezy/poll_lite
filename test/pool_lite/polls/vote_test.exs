@@ -10,6 +10,7 @@ defmodule PoolLite.Polls.VoteTest do
         poll_id: 1,
         option_id: 1
       }
+
       changeset = Vote.changeset(%Vote{}, attrs)
 
       assert changeset.valid?
@@ -20,12 +21,14 @@ defmodule PoolLite.Polls.VoteTest do
 
     test "valid changeset with all fields" do
       voted_at = ~N[2024-01-01 12:00:00]
+
       attrs = %{
         user_identifier: "user123",
         poll_id: 1,
         option_id: 1,
         voted_at: voted_at
       }
+
       changeset = Vote.changeset(%Vote{}, attrs)
 
       assert changeset.valid?
@@ -41,6 +44,7 @@ defmodule PoolLite.Polls.VoteTest do
         poll_id: 1,
         option_id: 1
       }
+
       changeset = Vote.changeset(%Vote{}, attrs)
 
       assert changeset.valid?
@@ -57,12 +61,14 @@ defmodule PoolLite.Polls.VoteTest do
 
     test "preserves provided voted_at" do
       custom_time = ~N[2023-06-15 10:30:00]
+
       attrs = %{
         user_identifier: "user123",
         poll_id: 1,
         option_id: 1,
         voted_at: custom_time
       }
+
       changeset = Vote.changeset(%Vote{}, attrs)
 
       assert changeset.valid?
@@ -71,6 +77,7 @@ defmodule PoolLite.Polls.VoteTest do
 
     test "does not override existing voted_at when updating" do
       existing_time = ~N[2023-06-15 10:30:00]
+
       existing_vote = %Vote{
         user_identifier: "user123",
         poll_id: 1,
@@ -163,6 +170,7 @@ defmodule PoolLite.Polls.VoteTest do
         option_id: 1,
         unknown_field: "value"
       }
+
       changeset = Vote.changeset(%Vote{}, attrs)
 
       assert changeset.valid?
@@ -175,6 +183,7 @@ defmodule PoolLite.Polls.VoteTest do
         poll_id: 1,
         option_id: 1
       }
+
       changeset = Vote.changeset(%Vote{}, attrs)
 
       assert changeset.valid?
@@ -183,11 +192,13 @@ defmodule PoolLite.Polls.VoteTest do
 
     test "changeset with UUID as user_identifier" do
       uuid = "550e8400-e29b-41d4-a716-446655440000"
+
       attrs = %{
         user_identifier: uuid,
         poll_id: 1,
         option_id: 1
       }
+
       changeset = Vote.changeset(%Vote{}, attrs)
 
       assert changeset.valid?
@@ -200,6 +211,7 @@ defmodule PoolLite.Polls.VoteTest do
         poll_id: 1,
         option_id: 1
       }
+
       changeset = Vote.changeset(%Vote{}, attrs)
 
       assert changeset.valid?
@@ -207,12 +219,14 @@ defmodule PoolLite.Polls.VoteTest do
     end
 
     test "changeset with session ID as user_identifier" do
-      session_id = "sess_" <> :crypto.strong_rand_bytes(32) |> Base.encode64()
+      session_id = ("sess_" <> :crypto.strong_rand_bytes(32)) |> Base.encode64()
+
       attrs = %{
         user_identifier: session_id,
         poll_id: 1,
         option_id: 1
       }
+
       changeset = Vote.changeset(%Vote{}, attrs)
 
       assert changeset.valid?
@@ -232,7 +246,8 @@ defmodule PoolLite.Polls.VoteTest do
 
       assert changeset.valid?
       assert get_change(changeset, :option_id) == 2
-      refute get_change(changeset, :voted_at)  # Should not change existing voted_at
+      # Should not change existing voted_at
+      refute get_change(changeset, :voted_at)
     end
 
     test "partial update changeset preserves unchanged fields" do
@@ -262,8 +277,8 @@ defmodule PoolLite.Polls.VoteTest do
 
       # Check that the constraint is defined
       assert Enum.any?(changeset.constraints, fn c ->
-        c.field == :poll_id and c.type == :foreign_key
-      end)
+               c.field == :poll_id and c.type == :foreign_key
+             end)
     end
 
     test "changeset includes foreign key constraint for option_id" do
@@ -275,8 +290,8 @@ defmodule PoolLite.Polls.VoteTest do
 
       # Check that the constraint is defined
       assert Enum.any?(changeset.constraints, fn c ->
-        c.field == :option_id and c.type == :foreign_key
-      end)
+               c.field == :option_id and c.type == :foreign_key
+             end)
     end
 
     test "changeset includes unique constraint for poll_id and user_identifier" do
@@ -288,9 +303,9 @@ defmodule PoolLite.Polls.VoteTest do
 
       # Check that the unique constraint is defined (field is poll_id for composite constraint)
       assert Enum.any?(changeset.constraints, fn c ->
-        c.field == :poll_id and c.type == :unique and
-        c.constraint == "votes_poll_id_user_identifier_index"
-      end)
+               c.field == :poll_id and c.type == :unique and
+                 c.constraint == "votes_poll_id_user_identifier_index"
+             end)
     end
   end
 
@@ -328,6 +343,7 @@ defmodule PoolLite.Polls.VoteTest do
         poll_id: 1,
         option_id: 1
       }
+
       changeset = Vote.changeset(%Vote{}, attrs)
 
       voted_at = get_change(changeset, :voted_at)
@@ -335,7 +351,8 @@ defmodule PoolLite.Polls.VoteTest do
     end
 
     test "preserves custom voted_at without modification" do
-      custom_time = NaiveDateTime.utc_now()
+      custom_time =
+        NaiveDateTime.utc_now()
         |> NaiveDateTime.add(1000, :microsecond)
         |> NaiveDateTime.truncate(:second)
 
@@ -345,6 +362,7 @@ defmodule PoolLite.Polls.VoteTest do
         option_id: 1,
         voted_at: custom_time
       }
+
       changeset = Vote.changeset(%Vote{}, attrs)
 
       assert get_change(changeset, :voted_at) == custom_time

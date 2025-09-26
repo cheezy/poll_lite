@@ -88,21 +88,24 @@ defmodule PoolLiteWeb.PollLive.IndexTest do
       # Clean up and create test data
       for poll <- Polls.list_polls(), do: Polls.delete_poll(poll)
 
-      poll1 = poll_fixture(%{
-        title: "Active Poll",
-        description: "This is active",
-        expires_at: DateTime.utc_now() |> DateTime.add(86_400, :second)
-      })
+      poll1 =
+        poll_fixture(%{
+          title: "Active Poll",
+          description: "This is active",
+          expires_at: DateTime.utc_now() |> DateTime.add(86_400, :second)
+        })
 
-      poll2 = poll_fixture(%{
-        title: "Another Active Poll",
-        description: "This is also active"
-      })
+      poll2 =
+        poll_fixture(%{
+          title: "Another Active Poll",
+          description: "This is also active"
+        })
 
-      poll3 = poll_fixture(%{
-        title: "Recent Poll",
-        description: "Created recently"
-      })
+      poll3 =
+        poll_fixture(%{
+          title: "Recent Poll",
+          description: "Created recently"
+        })
 
       %{poll1: poll1, poll2: poll2, poll3: poll3}
     end
@@ -171,9 +174,10 @@ defmodule PoolLiteWeb.PollLive.IndexTest do
 
     test "handles filter event for recent polls", %{conn: conn} do
       # Note: We can't set inserted_at in fixtures, so all polls will be recent
-      _recent_poll = poll_fixture(%{
-        title: "Recent Poll"
-      })
+      _recent_poll =
+        poll_fixture(%{
+          title: "Recent Poll"
+        })
 
       {:ok, view, _html} = live(conn, ~p"/polls")
 
@@ -292,7 +296,8 @@ defmodule PoolLiteWeb.PollLive.IndexTest do
 
       # Should toggle the menu visibility
       html = render(view)
-      assert html =~ "Live Polls"  # Menu should be rendered
+      # Menu should be rendered
+      assert html =~ "Live Polls"
     end
 
     test "handles share-poll event", %{conn: conn} do
@@ -315,7 +320,8 @@ defmodule PoolLiteWeb.PollLive.IndexTest do
       })
 
       # Event should be pushed to client
-      assert true  # Share event doesn't change HTML but pushes JS event
+      # Share event doesn't change HTML but pushes JS event
+      assert true
     end
   end
 
@@ -372,10 +378,12 @@ defmodule PoolLiteWeb.PollLive.IndexTest do
         timestamp: DateTime.utc_now(),
         option_id: 1
       }
+
       send(view.pid, {:poll_vote_activity, poll.id, vote_data})
 
       html = render(view)
-      assert html =~ "New vote cast"  # Flash message
+      # Flash message
+      assert html =~ "New vote cast"
     end
 
     test "handles clear_activity event", %{conn: conn} do
@@ -402,26 +410,29 @@ defmodule PoolLiteWeb.PollLive.IndexTest do
       # Clean up and create diverse test data
       for poll <- Polls.list_polls(), do: Polls.delete_poll(poll)
 
-      poll1 = poll_fixture(%{
-        title: "Elixir Programming",
-        description: "About Elixir",
-        tags: ["elixir", "programming"],
-        category: "Technology"
-      })
+      poll1 =
+        poll_fixture(%{
+          title: "Elixir Programming",
+          description: "About Elixir",
+          tags: ["elixir", "programming"],
+          category: "Technology"
+        })
 
-      poll2 = poll_fixture(%{
-        title: "Coffee Preferences",
-        description: "Your favorite coffee",
-        tags: ["coffee", "drinks"],
-        category: "Lifestyle"
-      })
+      poll2 =
+        poll_fixture(%{
+          title: "Coffee Preferences",
+          description: "Your favorite coffee",
+          tags: ["coffee", "drinks"],
+          category: "Lifestyle"
+        })
 
-      poll3 = poll_fixture(%{
-        title: "Sports Survey",
-        description: "Favorite sports",
-        tags: ["sports", "health"],
-        category: "Sports"
-      })
+      poll3 =
+        poll_fixture(%{
+          title: "Sports Survey",
+          description: "Favorite sports",
+          tags: ["sports", "health"],
+          category: "Sports"
+        })
 
       %{poll1: poll1, poll2: poll2, poll3: poll3}
     end
@@ -487,11 +498,12 @@ defmodule PoolLiteWeb.PollLive.IndexTest do
 
     test "combines multiple filters", %{conn: conn} do
       # Create a recent tech poll with elixir tag
-      poll = poll_fixture(%{
-        title: "Recent Elixir Poll",
-        category: "Technology",
-        tags: ["elixir"]
-      })
+      poll =
+        poll_fixture(%{
+          title: "Recent Elixir Poll",
+          category: "Technology",
+          tags: ["elixir"]
+        })
 
       {:ok, view, _html} = live(conn, ~p"/polls")
 
@@ -515,20 +527,23 @@ defmodule PoolLiteWeb.PollLive.IndexTest do
       for poll <- Polls.list_polls(), do: Polls.delete_poll(poll)
 
       # Create polls with specific order
-      poll1 = poll_fixture(%{
-        title: "A First Poll",
-        inserted_at: DateTime.utc_now() |> DateTime.add(-3600, :second)
-      })
+      poll1 =
+        poll_fixture(%{
+          title: "A First Poll",
+          inserted_at: DateTime.utc_now() |> DateTime.add(-3600, :second)
+        })
 
-      poll2 = poll_fixture(%{
-        title: "B Second Poll",
-        inserted_at: DateTime.utc_now() |> DateTime.add(-1800, :second)
-      })
+      poll2 =
+        poll_fixture(%{
+          title: "B Second Poll",
+          inserted_at: DateTime.utc_now() |> DateTime.add(-1800, :second)
+        })
 
-      poll3 = poll_fixture(%{
-        title: "C Third Poll",
-        inserted_at: DateTime.utc_now()
-      })
+      poll3 =
+        poll_fixture(%{
+          title: "C Third Poll",
+          inserted_at: DateTime.utc_now()
+        })
 
       # Add some votes to test vote sorting
       option1 = List.first(poll1.options)
@@ -561,7 +576,8 @@ defmodule PoolLiteWeb.PollLive.IndexTest do
       view |> render_click("sort", %{"sort" => "oldest"})
 
       html = render(view)
-      assert html  # Verify sort completes without error
+      # Verify sort completes without error
+      assert html
     end
 
     test "sorts alphabetically", %{conn: conn} do
@@ -573,7 +589,8 @@ defmodule PoolLiteWeb.PollLive.IndexTest do
       view |> render_click("sort", %{"sort" => "alphabetical"})
 
       html = render(view)
-      assert html  # Verify sort completes without error
+      # Verify sort completes without error
+      assert html
     end
 
     test "sorts by most votes", %{conn: conn} do
@@ -585,7 +602,8 @@ defmodule PoolLiteWeb.PollLive.IndexTest do
       view |> render_click("sort", %{"sort" => "most_votes"})
 
       html = render(view)
-      assert html  # Verify sort completes without error
+      # Verify sort completes without error
+      assert html
     end
 
     test "sorts by least votes", %{conn: conn} do
@@ -597,7 +615,8 @@ defmodule PoolLiteWeb.PollLive.IndexTest do
       view |> render_click("sort", %{"sort" => "least_votes"})
 
       html = render(view)
-      assert html  # Verify sort completes without error
+      # Verify sort completes without error
+      assert html
     end
   end
 
@@ -632,6 +651,7 @@ defmodule PoolLiteWeb.PollLive.IndexTest do
       # Test that error handling doesn't crash when poll doesn't exist
       # We need to use an existing poll's ID to avoid NoResultsError
       existing_poll = List.first(Polls.list_polls())
+
       if existing_poll do
         _result = view |> render_click("delete", %{"id" => to_string(existing_poll.id)})
       end
@@ -670,6 +690,7 @@ defmodule PoolLiteWeb.PollLive.IndexTest do
         timestamp: DateTime.utc_now(),
         option_id: 1
       }
+
       send(view.pid, {:poll_vote_activity, poll.id, vote_data})
 
       html = render(view)

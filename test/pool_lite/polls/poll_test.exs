@@ -15,6 +15,7 @@ defmodule PoolLite.Polls.PollTest do
 
     test "valid changeset with all fields" do
       future_date = DateTime.utc_now() |> DateTime.add(1, :day) |> DateTime.truncate(:second)
+
       attrs = %{
         title: "Test Poll",
         description: "A test poll description",
@@ -22,6 +23,7 @@ defmodule PoolLite.Polls.PollTest do
         category: "Technology",
         tags: ["test", "poll"]
       }
+
       changeset = Poll.changeset(%Poll{}, attrs)
 
       assert changeset.valid?
