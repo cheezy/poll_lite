@@ -2,7 +2,8 @@ defmodule PoolLiteWeb.PollLive.Form do
   use PoolLiteWeb, :live_view
 
   alias PoolLite.Polls
-  alias PoolLite.Polls.{Poll, PubSub}
+  alias PoolLite.Polls.Poll
+  alias PoolLite.Polls.PubSub
 
   @impl true
   def mount(params, _session, socket) do

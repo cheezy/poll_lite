@@ -6,7 +6,10 @@ defmodule PoolLite.Polls do
   import Ecto.Query, warn: false
   alias PoolLite.Repo
 
-  alias PoolLite.Polls.{Option, Poll, PubSub, Vote}
+  alias PoolLite.Polls.Option
+  alias PoolLite.Polls.Poll
+  alias PoolLite.Polls.PubSub
+  alias PoolLite.Polls.Vote
 
   @doc """
   Returns the list of polls with their options preloaded.
@@ -418,7 +421,9 @@ defmodule PoolLite.Polls do
   @spec get_poll_stats(integer) :: map
   def get_poll_stats(poll_id) do
     poll = get_poll_with_vote_counts!(poll_id)
-    total_votes = Enum.sum(Enum.map(poll.options, & &1.votes_count))
+    total_votes =
+      Enum.map(poll.options, & &1.votes_count)
+      |> Enum.sum()
 
     options_with_percentages =
       poll.options

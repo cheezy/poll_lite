@@ -3,7 +3,8 @@ defmodule PoolLite.Polls.Option do
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias PoolLite.Polls.{Poll, Vote}
+  alias PoolLite.Polls.Poll
+  alias PoolLite.Polls.Vote
 
   schema "options" do
     field :text, :string
