@@ -49,49 +49,75 @@ defmodule PoolLite.Polls do
   """
   @spec list_polls_with_stats(atom) :: list
   def list_polls_with_stats(filter \\ :all) do
-    # First get all polls with options preloaded
     polls = list_polls(filter)
 
-    # Get all poll IDs
-    poll_ids = Enum.map(polls, & &1.id)
+    # Return early if no polls
+    if Enum.empty?(polls) do
+      []
+    else
+      # Get vote counts for all polls in a single query
+      vote_counts = fetch_vote_counts(Enum.map(polls, & &1.id))
 
-    # Get all vote counts in a single query
-    vote_counts =
-      from(v in Vote,
-        where: v.poll_id in ^poll_ids,
-        group_by: [v.poll_id, v.option_id],
-        select: {v.poll_id, v.option_id, count(v.id)}
-      )
-      |> Repo.all()
-      |> Enum.reduce(%{}, fn {poll_id, option_id, count}, acc ->
-        Map.update(acc, poll_id, %{option_id => count}, &Map.put(&1, option_id, count))
+      # Transform polls with stats
+      Enum.map(polls, &attach_stats_to_poll(&1, vote_counts))
+    end
+  end
+
+  # Fetch vote counts for multiple polls in one query
+  defp fetch_vote_counts([]), do: %{}
+
+  defp fetch_vote_counts(poll_ids) do
+    from(v in Vote,
+      where: v.poll_id in ^poll_ids,
+      group_by: [v.poll_id, v.option_id],
+      select: {v.poll_id, v.option_id, count(v.id)}
+    )
+    |> Repo.all()
+    |> build_vote_count_map()
+  end
+
+  # Build nested map: %{poll_id => %{option_id => count}}
+  defp build_vote_count_map(vote_data) do
+    Enum.reduce(vote_data, %{}, fn {poll_id, option_id, count}, acc ->
+      Map.update(acc, poll_id, %{option_id => count}, &Map.put(&1, option_id, count))
+    end)
+  end
+
+  # Attach stats to a single poll
+  defp attach_stats_to_poll(poll, vote_counts) do
+    poll_votes = Map.get(vote_counts, poll.id, %{})
+    total_votes = calculate_total_votes(poll_votes)
+
+    options_with_stats =
+      Enum.map(poll.options, fn option ->
+        add_stats_to_option(option, poll_votes, total_votes)
       end)
 
-    # Attach vote counts to options
-    Enum.map(polls, fn poll ->
-      poll_votes = Map.get(vote_counts, poll.id, %{})
-      total_votes = Map.values(poll_votes) |> Enum.sum()
+    poll
+    |> Map.put(:options, options_with_stats)
+    |> Map.put(:total_votes, total_votes)
+  end
 
-      options_with_counts =
-        Enum.map(poll.options, fn option ->
-          votes_count = Map.get(poll_votes, option.id, 0)
+  # Calculate total votes from poll_votes map
+  defp calculate_total_votes(poll_votes) do
+    poll_votes |> Map.values() |> Enum.sum()
+  end
 
-          percentage =
-            if total_votes > 0 do
-              Float.round(votes_count / total_votes * 100, 1)
-            else
-              0.0
-            end
+  # Add vote count and percentage to an option
+  defp add_stats_to_option(option, poll_votes, total_votes) do
+    votes_count = Map.get(poll_votes, option.id, 0)
+    percentage = calculate_percentage(votes_count, total_votes)
 
-          option
-          |> Map.put(:votes_count, votes_count)
-          |> Map.put(:percentage, percentage)
-        end)
+    option
+    |> Map.put(:votes_count, votes_count)
+    |> Map.put(:percentage, percentage)
+  end
 
-      poll
-      |> Map.put(:options, options_with_counts)
-      |> Map.put(:total_votes, total_votes)
-    end)
+  # Calculate percentage with proper zero handling
+  defp calculate_percentage(_votes_count, 0), do: 0.0
+
+  defp calculate_percentage(votes_count, total_votes) do
+    Float.round(votes_count / total_votes * 100, 1)
   end
 
   @doc """
@@ -326,7 +352,11 @@ defmodule PoolLite.Polls do
       {:error, :poll_expired}
 
   """
-  @spec vote_for_option(poll_id :: integer(), option_id :: integer(), user_identifier :: String.t()) ::
+  @spec vote_for_option(
+          poll_id :: integer(),
+          option_id :: integer(),
+          user_identifier :: String.t()
+        ) ::
           {:ok, Vote.t()} | {:error, :already_voted | :poll_expired | :suspicious_activity}
   def vote_for_option(poll_id, option_id, user_identifier) do
     # Get poll and check if it's still active
@@ -421,6 +451,7 @@ defmodule PoolLite.Polls do
   @spec get_poll_stats(integer) :: map
   def get_poll_stats(poll_id) do
     poll = get_poll_with_vote_counts!(poll_id)
+
     total_votes =
       Enum.map(poll.options, & &1.votes_count)
       |> Enum.sum()
