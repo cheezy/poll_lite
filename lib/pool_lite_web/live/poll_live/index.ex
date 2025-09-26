@@ -304,15 +304,15 @@ defmodule PoolLiteWeb.PollLive.Index do
   end
 
   defp matches_search_query?(poll, query) do
-    String.contains?(String.downcase(poll.title), query) or
-      String.contains?(String.downcase(poll.description || ""), query) or
+    String.downcase(poll.title) |>String.contains?(query) or
+    String.downcase(poll.description || "") |> String.contains?(query) or
       poll_tags_match?(poll.tags, query)
   end
 
   defp poll_tags_match?(nil, _query), do: false
 
   defp poll_tags_match?(tags, query) do
-    Enum.any?(tags, &String.contains?(String.downcase(&1), query))
+    Enum.any?(tags, &String.downcase(&1) |> String.contains?(query))
   end
 
   defp apply_category_filter(polls, ""), do: polls

@@ -207,7 +207,7 @@ defmodule PoolLite.Polls.VoteTest do
     end
 
     test "changeset with session ID as user_identifier" do
-      session_id = "sess_" <> Base.encode64(:crypto.strong_rand_bytes(32))
+      session_id = "sess_" <> :crypto.strong_rand_bytes(32) |> Base.encode64()
       attrs = %{
         user_identifier: session_id,
         poll_id: 1,

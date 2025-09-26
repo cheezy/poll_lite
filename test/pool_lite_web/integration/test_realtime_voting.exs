@@ -35,7 +35,8 @@ defmodule RealTimeVotingTest do
 
   defp simulate_user_voting(user_id, poll_id, option_ids) do
     # Random delay to simulate staggered user activity
-    Process.sleep(Enum.random(100..2000))
+    Enum.random(100..2000)
+    |> Process.sleep()
 
     # Select a random option to vote for
     option_id = Enum.random(option_ids)
