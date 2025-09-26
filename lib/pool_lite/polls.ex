@@ -170,49 +170,68 @@ defmodule PoolLite.Polls do
   """
   @spec create_poll(map) :: {:ok, Poll.t()} | {:error, Ecto.Changeset.t()}
   def create_poll(attrs \\ %{}) do
-    options = Map.get(attrs, "options", Map.get(attrs, :options, []))
-    poll_attrs = Map.drop(attrs, ["options", :options])
+    {options, poll_attrs} = extract_options_and_poll_attrs(attrs)
 
     Ecto.Multi.new()
     |> Ecto.Multi.insert(:poll, Poll.changeset(%Poll{}, poll_attrs))
-    |> Ecto.Multi.run(:options, fn repo, %{poll: poll} ->
-      options
-      |> Enum.filter(&(String.trim(&1) != ""))
-      |> Enum.map(fn text ->
-        now = DateTime.utc_now() |> DateTime.truncate(:second)
-
-        %{
-          text: String.trim(text),
-          poll_id: poll.id,
-          votes_count: 0,
-          inserted_at: now,
-          updated_at: now
-        }
-      end)
-      |> case do
-        [] ->
-          {:error, :no_options}
-
-        option_attrs ->
-          {_count, options} = repo.insert_all(Option, option_attrs, returning: true)
-          {:ok, options}
-      end
-    end)
+    |> Ecto.Multi.run(:options, &create_poll_options(&1, &2, options))
     |> Repo.transaction()
-    |> case do
-      {:ok, %{poll: poll}} ->
-        # Broadcast poll creation
-        PubSub.broadcast_poll_created(poll)
-        {:ok, get_poll!(poll.id)}
+    |> handle_create_poll_result(poll_attrs)
+  end
 
-      {:error, :options, :no_options, _} ->
-        {:error,
-         Poll.changeset(%Poll{}, poll_attrs)
-         |> Ecto.Changeset.add_error(:options, "must have at least one option")}
+  # Extract options and poll attributes from input
+  defp extract_options_and_poll_attrs(attrs) do
+    options = Map.get(attrs, "options", Map.get(attrs, :options, []))
+    poll_attrs = Map.drop(attrs, ["options", :options])
+    {options, poll_attrs}
+  end
 
-      {:error, :poll, changeset, _} ->
-        {:error, changeset}
-    end
+  # Create and insert poll options
+  defp create_poll_options(repo, %{poll: poll}, options) do
+    options
+    |> prepare_option_attrs(poll.id)
+    |> insert_options(repo)
+  end
+
+  # Prepare option attributes for insertion
+  defp prepare_option_attrs(options, poll_id) do
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    options
+    |> Enum.filter(&(String.trim(&1) != ""))
+    |> Enum.map(fn text ->
+      %{
+        text: String.trim(text),
+        poll_id: poll_id,
+        votes_count: 0,
+        inserted_at: now,
+        updated_at: now
+      }
+    end)
+  end
+
+  # Insert options into database
+  defp insert_options([], _repo), do: {:error, :no_options}
+
+  defp insert_options(option_attrs, repo) do
+    {_count, options} = repo.insert_all(Option, option_attrs, returning: true)
+    {:ok, options}
+  end
+
+  # Handle the result of create_poll transaction
+  defp handle_create_poll_result({:ok, %{poll: poll}}, _poll_attrs) do
+    PubSub.broadcast_poll_created(poll)
+    {:ok, get_poll!(poll.id)}
+  end
+
+  defp handle_create_poll_result({:error, :options, :no_options, _}, poll_attrs) do
+    {:error,
+     Poll.changeset(%Poll{}, poll_attrs)
+     |> Ecto.Changeset.add_error(:options, "must have at least one option")}
+  end
+
+  defp handle_create_poll_result({:error, :poll, changeset, _}, _poll_attrs) do
+    {:error, changeset}
   end
 
   @doc """
