@@ -612,42 +612,74 @@ defmodule PoolLite.Polls do
   end
 
   defp apply_search_filters(query, filters) do
-    Enum.reduce(filters, query, fn
-      {:query, search_query}, acc when is_binary(search_query) and search_query != "" ->
-        search_term = "%#{search_query}%"
-
-        from p in acc,
-          where: ilike(p.title, ^search_term) or ilike(p.description, ^search_term)
-
-      {:category, category}, acc when is_binary(category) and category != "" ->
-        from p in acc, where: p.category == ^category
-
-      {:tag, tag}, acc when is_binary(tag) and tag != "" ->
-        from p in acc, where: ^tag in p.tags
-
-      {:status, "active"}, acc ->
-        from p in acc, where: is_nil(p.expires_at) or p.expires_at > ^DateTime.utc_now()
-
-      {:status, "expired"}, acc ->
-        from p in acc, where: not is_nil(p.expires_at) and p.expires_at <= ^DateTime.utc_now()
-
-      {:status, "recent"}, acc ->
-        seven_days_ago = DateTime.add(DateTime.utc_now(), -7, :day)
-        from p in acc, where: p.inserted_at > ^seven_days_ago
-
-      {:sort, "newest"}, acc ->
-        from p in acc, order_by: [desc: p.inserted_at]
-
-      {:sort, "oldest"}, acc ->
-        from p in acc, order_by: [asc: p.inserted_at]
-
-      {:sort, "alphabetical"}, acc ->
-        from p in acc, order_by: [asc: p.title]
-
-      _, acc ->
-        acc
-    end)
+    filters
+    |> Enum.reduce(query, &apply_single_filter/2)
   end
+
+  # Apply individual filter based on type
+  defp apply_single_filter({:query, value}, query), do: filter_by_text(query, value)
+  defp apply_single_filter({:category, value}, query), do: filter_by_category(query, value)
+  defp apply_single_filter({:tag, value}, query), do: filter_by_tag(query, value)
+  defp apply_single_filter({:status, value}, query), do: filter_by_status(query, value)
+  defp apply_single_filter({:sort, value}, query), do: apply_sort_order(query, value)
+  defp apply_single_filter(_, query), do: query
+
+  # Text search filter
+  defp filter_by_text(query, search_query) when is_binary(search_query) and search_query != "" do
+    search_term = "%#{search_query}%"
+
+    from p in query,
+      where: ilike(p.title, ^search_term) or ilike(p.description, ^search_term)
+  end
+
+  defp filter_by_text(query, _), do: query
+
+  # Category filter
+  defp filter_by_category(query, category) when is_binary(category) and category != "" do
+    from p in query, where: p.category == ^category
+  end
+
+  defp filter_by_category(query, _), do: query
+
+  # Tag filter
+  defp filter_by_tag(query, tag) when is_binary(tag) and tag != "" do
+    from p in query, where: ^tag in p.tags
+  end
+
+  defp filter_by_tag(query, _), do: query
+
+  # Status filters
+  defp filter_by_status(query, "active") do
+    now = DateTime.utc_now()
+    from p in query, where: is_nil(p.expires_at) or p.expires_at > ^now
+  end
+
+  defp filter_by_status(query, "expired") do
+    now = DateTime.utc_now()
+    from p in query, where: not is_nil(p.expires_at) and p.expires_at <= ^now
+  end
+
+  defp filter_by_status(query, "recent") do
+    seven_days_ago = DateTime.add(DateTime.utc_now(), -7, :day)
+    from p in query, where: p.inserted_at > ^seven_days_ago
+  end
+
+  defp filter_by_status(query, _), do: query
+
+  # Sort orders
+  defp apply_sort_order(query, "newest") do
+    from p in query, order_by: [desc: p.inserted_at]
+  end
+
+  defp apply_sort_order(query, "oldest") do
+    from p in query, order_by: [asc: p.inserted_at]
+  end
+
+  defp apply_sort_order(query, "alphabetical") do
+    from p in query, order_by: [asc: p.title]
+  end
+
+  defp apply_sort_order(query, _), do: query
 
   @doc """
   Get all unique categories from existing polls.

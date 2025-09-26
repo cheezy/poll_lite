@@ -8,10 +8,12 @@
         {Credo.Check.Design.AliasUsage, if_nested_deeper_than: 3, if_called_more_often_than: 1},
         {Credo.Check.Readability.AliasAs, []},
         {Credo.Check.Readability.MultiAlias, []},
-        {Credo.Check.Readability.NestedFunctionCalls, files: %{excluded: ["lib/pool_lite/polls.ex"]}},
+        {Credo.Check.Readability.NestedFunctionCalls,
+         files: %{excluded: ["lib/pool_lite/polls.ex"]}},
         {Credo.Check.Readability.SeparateAliasRequire, []},
         {Credo.Check.Readability.StrictModuleLayout, []},
         {Credo.Check.Readability.WithCustomTaggedTuple, []},
+        {Credo.Check.Refactor.ABCSize, []},
         {Credo.Check.Warning.UnsafeToAtom, []},
 
         # Disabled checks
