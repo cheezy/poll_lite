@@ -469,59 +469,85 @@ defmodule PoolLite.Polls do
   @spec get_poll_stats(integer) :: map
   def get_poll_stats(poll_id) do
     poll = get_poll_with_vote_counts!(poll_id)
+    total_votes = sum_option_votes(poll.options)
 
-    total_votes =
-      Enum.map(poll.options, & &1.votes_count)
-      |> Enum.sum()
+    options_with_stats = enhance_options_with_stats(poll.options, total_votes)
+    poll_stats = calculate_poll_statistics(options_with_stats, total_votes, poll_id)
 
-    options_with_percentages =
-      poll.options
-      |> Enum.map(fn option ->
-        # Enhanced percentage calculation with precision
-        percentage =
-          if total_votes > 0 do
-            (option.votes_count / total_votes * 100)
-            |> Float.round(1)
-          else
-            0.0
-          end
+    poll
+    |> Map.put(:options, options_with_stats)
+    |> Map.merge(poll_stats)
+  end
 
-        # Add relative ranking and vote statistics
-        option
-        |> Map.put(:percentage, percentage)
-        |> Map.put(
-          :vote_share,
-          if(total_votes > 0, do: option.votes_count / total_votes, else: 0.0)
-        )
-      end)
-      # Sort by vote count for better UX
-      |> Enum.sort_by(& &1.votes_count, :desc)
-      |> Enum.with_index()
-      |> Enum.map(fn {option, index} ->
-        Map.put(option, :rank, index + 1)
-      end)
-      # Restore original order by ID
-      |> Enum.sort_by(& &1.id)
+  # Calculate total votes from options list
+  defp sum_option_votes(options) do
+    options
+    |> Enum.map(& &1.votes_count)
+    |> Enum.sum()
+  end
 
-    # Calculate additional statistics
-    leading_option = Enum.max_by(options_with_percentages, & &1.votes_count, fn -> nil end)
-    vote_counts = Enum.map(options_with_percentages, & &1.votes_count)
+  # Add percentage, vote share, and ranking to options
+  defp enhance_options_with_stats(options, total_votes) do
+    options
+    |> add_percentages_and_vote_shares(total_votes)
+    |> add_rankings_to_options()
+  end
 
-    stats = %{
+  # Add percentage and vote share calculations to each option
+  defp add_percentages_and_vote_shares(options, total_votes) do
+    Enum.map(options, fn option ->
+      percentage = calculate_percentage(option.votes_count, total_votes)
+      vote_share = calculate_vote_share(option.votes_count, total_votes)
+
+      option
+      |> Map.put(:percentage, percentage)
+      |> Map.put(:vote_share, vote_share)
+    end)
+  end
+
+  # Add ranking information while preserving original order
+  defp add_rankings_to_options(options) do
+    options
+    |> Enum.sort_by(& &1.votes_count, :desc)
+    |> Enum.with_index(1)
+    |> Enum.map(fn {option, rank} -> Map.put(option, :rank, rank) end)
+    |> Enum.sort_by(& &1.id)
+  end
+
+  # Calculate vote share (0.0 to 1.0)
+  defp calculate_vote_share(_votes_count, 0), do: 0.0
+  defp calculate_vote_share(votes_count, total_votes), do: votes_count / total_votes
+
+  # Calculate comprehensive poll statistics
+  defp calculate_poll_statistics(options, total_votes, poll_id) do
+    vote_counts = Enum.map(options, & &1.votes_count)
+    leading_option = find_leading_option(options)
+
+    %{
       total_votes: total_votes,
-      average_votes_per_option:
-        if(total_votes > 0, do: Float.round(total_votes / length(poll.options), 1), else: 0.0),
-      leading_option_id:
-        if(leading_option && leading_option.votes_count > 0, do: leading_option.id, else: nil),
+      average_votes_per_option: calculate_average_votes(total_votes, length(options)),
+      leading_option_id: extract_leading_option_id(leading_option),
       max_votes: Enum.max(vote_counts, fn -> 0 end),
       min_votes: Enum.min(vote_counts, fn -> 0 end),
       participation_rate: calculate_participation_rate(total_votes, poll_id),
-      vote_distribution: calculate_vote_distribution(options_with_percentages)
+      vote_distribution: calculate_vote_distribution(options)
     }
+  end
 
-    poll
-    |> Map.put(:options, options_with_percentages)
-    |> Map.merge(stats)
+  # Find the option with the most votes
+  defp find_leading_option(options) do
+    Enum.max_by(options, & &1.votes_count, fn -> nil end)
+  end
+
+  # Extract ID from leading option if it has votes
+  defp extract_leading_option_id(nil), do: nil
+  defp extract_leading_option_id(option) when option.votes_count > 0, do: option.id
+  defp extract_leading_option_id(_option), do: nil
+
+  # Calculate average votes per option
+  defp calculate_average_votes(0, _option_count), do: 0.0
+  defp calculate_average_votes(total_votes, option_count) do
+    Float.round(total_votes / option_count, 1)
   end
 
   # Calculate a simple participation rate (for demo purposes)
