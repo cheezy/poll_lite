@@ -377,7 +377,13 @@ defmodule PoolLite.Polls do
         ) ::
           {:ok, Vote.t()} | {:error, :already_voted | :poll_expired | :suspicious_activity}
   def vote_for_option(poll_id, option_id, user_identifier) do
-    # Get poll and check if it's still active
+    with :ok <- validate_vote_eligibility(poll_id, option_id, user_identifier) do
+      process_vote_transaction(poll_id, option_id, user_identifier)
+    end
+  end
+
+  # Validate if user can vote on this poll/option
+  defp validate_vote_eligibility(poll_id, option_id, user_identifier) do
     poll = get_poll!(poll_id)
 
     cond do
@@ -391,48 +397,68 @@ defmodule PoolLite.Polls do
         {:error, :suspicious_activity}
 
       true ->
-        # Verify the option belongs to the poll
-        _option = Repo.get_by!(Option, id: option_id, poll_id: poll_id)
-
-        vote_attrs = %{
-          poll_id: poll_id,
-          option_id: option_id,
-          user_identifier: user_identifier
-        }
-
-        Ecto.Multi.new()
-        |> Ecto.Multi.insert(:vote, Vote.changeset(%Vote{}, vote_attrs))
-        |> Ecto.Multi.run(:update_count, fn repo, %{vote: vote} ->
-          # Update the option's vote count
-          from(o in Option, where: o.id == ^vote.option_id)
-          |> repo.update_all(inc: [votes_count: 1])
-
-          {:ok, vote}
-        end)
-        |> Ecto.Multi.run(:broadcast, fn _repo, %{vote: vote} ->
-          # Enhanced real-time broadcasting
-          poll_stats = get_poll_stats(poll_id)
-
-          # Broadcast vote event with detailed information
-          PubSub.broadcast_vote_cast(poll_id, %{
-            vote: vote,
-            option_id: vote.option_id,
-            poll_id: poll_id,
-            timestamp: DateTime.utc_now()
-          })
-
-          # Broadcast updated statistics
-          PubSub.broadcast_poll_stats(poll_id, poll_stats)
-
-          {:ok, vote}
-        end)
-        |> Repo.transaction()
-        |> case do
-          {:ok, %{vote: vote}} -> {:ok, vote}
-          {:error, :vote, changeset, _} -> {:error, changeset}
-        end
+        validate_option_belongs_to_poll(option_id, poll_id)
     end
   end
+
+  # Verify the option belongs to the poll
+  defp validate_option_belongs_to_poll(option_id, poll_id) do
+    _option = Repo.get_by!(Option, id: option_id, poll_id: poll_id)
+    :ok
+  end
+
+  # Process the vote transaction with all necessary steps
+  defp process_vote_transaction(poll_id, option_id, user_identifier) do
+    vote_attrs = build_vote_attrs(poll_id, option_id, user_identifier)
+
+    Ecto.Multi.new()
+    |> Ecto.Multi.insert(:vote, Vote.changeset(%Vote{}, vote_attrs))
+    |> Ecto.Multi.run(:update_count, &update_option_vote_count/2)
+    |> Ecto.Multi.run(:broadcast, &broadcast_vote_events(&1, &2, poll_id))
+    |> Repo.transaction()
+    |> handle_vote_transaction_result()
+  end
+
+  # Build vote attributes map
+  defp build_vote_attrs(poll_id, option_id, user_identifier) do
+    %{
+      poll_id: poll_id,
+      option_id: option_id,
+      user_identifier: user_identifier
+    }
+  end
+
+  # Update the option's vote count
+  defp update_option_vote_count(repo, %{vote: vote}) do
+    from(o in Option, where: o.id == ^vote.option_id)
+    |> repo.update_all(inc: [votes_count: 1])
+
+    {:ok, vote}
+  end
+
+  # Broadcast vote events and statistics
+  defp broadcast_vote_events(_repo, %{vote: vote}, poll_id) do
+    poll_stats = get_poll_stats(poll_id)
+
+    broadcast_vote_cast(vote, poll_id)
+    PubSub.broadcast_poll_stats(poll_id, poll_stats)
+
+    {:ok, vote}
+  end
+
+  # Broadcast vote cast event with details
+  defp broadcast_vote_cast(vote, poll_id) do
+    PubSub.broadcast_vote_cast(poll_id, %{
+      vote: vote,
+      option_id: vote.option_id,
+      poll_id: poll_id,
+      timestamp: DateTime.utc_now()
+    })
+  end
+
+  # Handle the result of vote transaction
+  defp handle_vote_transaction_result({:ok, %{vote: vote}}), do: {:ok, vote}
+  defp handle_vote_transaction_result({:error, :vote, changeset, _}), do: {:error, changeset}
 
   @doc """
   Checks if a user has already voted in a poll.
