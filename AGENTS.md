@@ -13,7 +13,7 @@
 - When you complete a task that updates code make sure all existing unit tests pass and write new tests if needed
 - Each time you write or update a unit tests run them with `mix test` and ensure they pass
 - When you complete a task run `mix test --cover` and ensure coverage is above the threshold
-- When you complete a task run `mix credo` to check for code quality issues and fix them
+- When you complete a task run `mix credo --strict` to check for code quality issues and fix them
 
 ## Security guidelines
 
